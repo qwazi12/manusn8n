@@ -1,0 +1,88 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Menu } from "lucide-react";
+
+export function Header() {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <header className="w-[90%] md:w-[70%] lg:w-[75%] lg:max-w-screen-xl top-5 mx-auto sticky border z-40 rounded-2xl flex justify-between items-center p-2 bg-card shadow-md">
+      <Link href="/" className="font-bold text-lg flex items-center">
+        <Image
+          src="/favicon.png"
+          alt="n8nCraft Logo"
+          width={28}
+          height={28}
+          className="mr-2"
+        />
+        n8nCraft
+      </Link>
+
+      {/* Mobile Menu */}
+      <div className="flex items-center lg:hidden">
+        <Sheet open={isOpen} onOpenChange={setIsOpen}>
+          <SheetTrigger asChild>
+            <Button variant="ghost" size="icon">
+              <Menu className="h-6 w-6" />
+              <span className="sr-only">Toggle menu</span>
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="right" className="flex flex-col gap-6 p-6">
+            <div className="flex flex-col gap-2">
+              <Button variant="ghost" asChild>
+                <Link href="/#features" onClick={() => setIsOpen(false)}>Features</Link>
+              </Button>
+              <Button variant="ghost" asChild>
+                <Link href="/#pricing" onClick={() => setIsOpen(false)}>Pricing</Link>
+              </Button>
+              <Button variant="ghost" asChild>
+                <Link href="/#contact" onClick={() => setIsOpen(false)}>Contact</Link>
+              </Button>
+              <Button variant="ghost" asChild>
+                <Link href="/#faq" onClick={() => setIsOpen(false)}>FAQ</Link>
+              </Button>
+            </div>
+            <div className="flex flex-col gap-2">
+              <Button variant="outline" asChild>
+                <Link href="/signin" onClick={() => setIsOpen(false)}>Login</Link>
+              </Button>
+              <Button asChild>
+                <Link href="/signup" onClick={() => setIsOpen(false)}>Sign Up Now</Link>
+              </Button>
+            </div>
+          </SheetContent>
+        </Sheet>
+      </div>
+
+      {/* Desktop Menu */}
+      <div className="hidden lg:flex items-center gap-1">
+        <Button variant="ghost" asChild>
+          <Link href="/#features">Features</Link>
+        </Button>
+        <Button variant="ghost" asChild>
+          <Link href="/#pricing">Pricing</Link>
+        </Button>
+        <Button variant="ghost" asChild>
+          <Link href="/#contact">Contact</Link>
+        </Button>
+        <Button variant="ghost" asChild>
+          <Link href="/#faq">FAQ</Link>
+        </Button>
+      </div>
+
+      <div className="hidden lg:flex gap-3">
+        <Button variant="outline" asChild className="h-10 md:h-[34px]">
+          <Link href="/signin">Login</Link>
+        </Button>
+        <Button asChild className="h-10 md:h-[34px]">
+          <Link href="/signup">Sign Up Now</Link>
+        </Button>
+      </div>
+    </header>
+  );
+}
