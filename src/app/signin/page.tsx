@@ -1,5 +1,4 @@
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { SignIn } from "@clerk/nextjs";
 
 export default function SignInPage() {
   return (
@@ -13,13 +12,7 @@ export default function SignInPage() {
         </div>
 
         <div className="items-center w-full flex flex-col gap-4">
-          <Button className="w-full" asChild>
-            <Link href="/dashboard">Continue With Google</Link>
-          </Button>
-
-          <Button className="w-full" asChild>
-            <Link href="/dashboard">Continue With Github</Link>
-          </Button>
+          <SignIn />
         </div>
       </div>
     </div>
