@@ -30,13 +30,6 @@ function PricingTier({
 }: PricingTierProps) {
   return (
     <Card className={`border ${popular ? 'border-primary/50 shadow-lg' : ''} flex flex-col h-full`}>
-      {badge && (
-        <div className="absolute top-0 right-0">
-          <div className="bg-primary text-white text-xs font-bold px-3 py-1 rounded-bl-lg rounded-tr-lg">
-            {badge}
-          </div>
-        </div>
-      )}
       <CardHeader>
         <CardTitle>{name}</CardTitle>
         <CardDescription>{description}</CardDescription>
@@ -109,8 +102,6 @@ export function PricingSection() {
           description="For serious automation builders"
           price="$17.99"
           priceDetail="/month"
-          popular={true}
-          badge="MOST POPULAR"
           features={[
             "500 credits per month",
             "All Free features included",
