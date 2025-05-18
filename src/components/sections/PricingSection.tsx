@@ -13,7 +13,6 @@ interface PricingTierProps {
   buttonLink: string;
   popular?: boolean;
   badge?: string;
-  trialDays?: number;
 }
 
 function PricingTier({
@@ -26,10 +25,16 @@ function PricingTier({
   buttonLink,
   popular,
   badge,
-  trialDays,
 }: PricingTierProps) {
   return (
     <Card className={`border ${popular ? 'border-primary/50 shadow-lg' : ''} flex flex-col h-full`}>
+      {badge && (
+        <div className="absolute top-0 right-0">
+          <div className="bg-primary text-white text-xs font-bold px-3 py-1 rounded-bl-lg rounded-tr-lg">
+            {badge}
+          </div>
+        </div>
+      )}
       <CardHeader>
         <CardTitle>{name}</CardTitle>
         <CardDescription>{description}</CardDescription>
@@ -40,11 +45,6 @@ function PricingTier({
             <span className="text-3xl font-bold">{price}</span>
             <span className="text-muted-foreground ml-2">{priceDetail}</span>
           </div>
-          {trialDays && (
-            <p className="text-sm text-muted-foreground mt-1">
-              {trialDays}-day free trial
-            </p>
-          )}
         </div>
         <ul className="space-y-2">
           {features.map((feature) => (
@@ -73,71 +73,64 @@ export function PricingSection() {
     <section id="pricing" className="container mx-auto py-16 md:py-24">
       <div className="text-center mb-12">
         <h2 className="text-lg font-medium text-muted-foreground mb-2">Pricing</h2>
-        <h3 className="text-3xl md:text-4xl font-bold mb-4">Choose Your Plan</h3>
+        <h3 className="text-3xl md:text-4xl font-bold mb-4">Get more workflows</h3>
         <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-          Start with our free trial or choose a plan that fits your automation needs. All plans include our core AI workflow generation.
+          Enjoy exclusive pricing for our new AI-driven automation platform. Unlock powerful workflows at an unbeatable value!
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <PricingTier
-          name="Free Trial"
-          description="Perfect for trying out NodePilot"
+          name="Free"
+          description="Basic support with limited daily prompts."
           price="$0"
-          priceDetail="/7 days"
-          trialDays={7}
-          features={[
-            "50-100 credits (introductory)",
-            "Natural language → n8n JSON workflow",
-            "Step-by-step workflow guide",
-            "Basic support",
-            "Upgrade required after trial"
-          ]}
-          buttonText="Start Free Trial"
-          buttonLink="/signup"
-        />
-
-        <PricingTier
-          name="Pro"
-          description="For serious automation builders"
-          price="$17.99"
           priceDetail="/month"
           features={[
-            "500 credits per month",
-            "All Free features included",
-            "Priority AI processing",
-            "Upload files/images for prompts",
-            "Retain all workflows",
-            "Multi-turn refinement chat"
+            "Basic Support",
+            "500 Credits",
           ]}
-          buttonText="Go Pro"
-          buttonLink="/signup?plan=pro"
+          buttonText="Start for Free"
+          buttonLink="/dashboard"
         />
 
         <PricingTier
-          name="Pay-As-You-Go"
-          description="Perfect for occasional use"
-          price="$5"
-          priceDetail="/100 requests"
+          name="Discord"
+          description="Enhanced free tier for Discord community members."
+          price="$0"
+          priceDetail="/month"
           features={[
-            "No subscription required",
-            "All standard generation features",
-            "Credits expire after 30 days",
-            "Great for occasional users",
-            "Pay only for what you need"
+            "Priority Support",
+            "1000 Credits",
           ]}
-          buttonText="Start PAYG"
-          buttonLink="/signup?plan=payg"
+          buttonText="Join Discord"
+          buttonLink="https://discord.gg/BFnVZ9D4aG"
         />
-      </div>
 
-      <div className="mt-12 text-center">
-        <p className="text-sm text-muted-foreground">
-          All plans include our core workflow generation features. Need a custom plan?{" "}
-          <Link href="/contact" className="text-primary hover:underline">
-            Contact us
-          </Link>
-        </p>
+        <PricingTier
+          name="Monthly"
+          description="Entry-level monthly plan with priority support."
+          price="$1.99"
+          priceDetail="/month"
+          features={[
+            "Priority Support",
+            "2,000 Credits per Month",
+          ]}
+          buttonText="Subscribe Monthly"
+          buttonLink="/subscribe/monthly"
+        />
+
+        <PricingTier
+          name="Annual"
+          description="Best value with significant yearly savings. Charged Annualy"
+          price="$12"
+          priceDetail="/month"
+          features={[
+            "High Priority Support",
+            "150K Prompts Annually",
+          ]}
+          buttonText="Subscribe Annually"
+          buttonLink="/subscribe/annually"
+        />
       </div>
     </section>
   );
