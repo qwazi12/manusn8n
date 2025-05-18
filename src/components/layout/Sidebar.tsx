@@ -5,72 +5,103 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, LayoutDashboard, List, Settings, LogOut, User } from 'lucide-react';
-import { useUser } from '@clerk/nextjs';
+import { useUser, useClerk } from '@clerk/nextjs';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { useClerk } from '@clerk/clerk-react';
 import { Clerk } from '@clerk/types';
+import { UserButton } from "@clerk/nextjs";
 
 interface NavigationItem {
   label: string;
   href: string;
   icon: React.ReactNode;
+  isLink: boolean;
   onClick?: (clerk: Clerk) => void;
 }
 
-const navigationItems: NavigationItem[] = [
-  {
-    label: "Dashboard",
-    href: "/dashboard",
-    icon: <LayoutDashboard className="w-5 h-5" />,
-  },
-  {
-    label: "My Workflows",
-    href: "/dashboard/workflows",
-    icon: <List className="w-5 h-5" />,
-  },
-  {
-    label: "Profile",
-    href: "/dashboard/user-profile",
-    icon: <User className="w-5 h-5" />,
-  },
-  {
-    label: "Settings",
-    href: "/dashboard/settings",
-    icon: <Settings className="w-5 h-5" />,
-  },
-];
-
 const SidebarContent = ({ isCollapsed = false }: { isCollapsed?: boolean }) => {
   const pathname = usePathname();
-  
+  const { openUserProfile } = useClerk();
+  const { signOut } = useClerk();
+  const router = useRouter();
+
+  const handleSignOut = async () => {
+    await signOut();
+    router.push('/');
+  };
+
   return (
-    <>
-      <nav className="flex-1 px-2 py-4 mt-2">
-        <div className="space-y-1">
-          {navigationItems.map((item) => (
-            <Link
-              key={item.label}
-              href={item.href}
-              className={cn(
-                "flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-200",
-                pathname === item.href 
-                  ? "bg-rose-50 text-rose-500" 
-                  : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
-              )}
-            >
-              {item.icon}
-              <span className={cn(
-                "text-sm font-medium transition-opacity duration-200",
-                isCollapsed ? "opacity-0 w-0" : "opacity-100"
-              )}>
-                {item.label}
-              </span>
-            </Link>
-          ))}
-        </div>
-      </nav>
-    </>
+    <nav className="flex-1 px-2 py-4 mt-2">
+      <div className="space-y-1">
+        <Link
+          href="/dashboard"
+          className={cn(
+            "flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-200",
+            pathname === "/dashboard"
+              ? "bg-rose-50 text-rose-500"
+              : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+          )}
+        >
+          <LayoutDashboard className="w-5 h-5" />
+          <span className={cn(
+            "text-sm font-medium transition-opacity duration-200",
+            isCollapsed ? "opacity-0 w-0" : "opacity-100"
+          )}>
+            Dashboard
+          </span>
+        </Link>
+        <Link
+          href="/dashboard/workflows"
+          className={cn(
+            "flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-200",
+            pathname === "/dashboard/workflows"
+              ? "bg-rose-50 text-rose-500"
+              : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+          )}
+        >
+          <List className="w-5 h-5" />
+          <span className={cn(
+            "text-sm font-medium transition-opacity duration-200",
+            isCollapsed ? "opacity-0 w-0" : "opacity-100"
+          )}>
+            My Workflows
+          </span>
+        </Link>
+        <button
+          type="button"
+          onClick={(e: React.MouseEvent) => {
+            e.preventDefault();
+            openUserProfile();
+          }}
+          className={cn(
+            "flex w-full items-center gap-3 px-4 py-2 rounded-lg transition-all duration-200 text-gray-500 hover:text-gray-900 hover:bg-gray-50",
+          )}
+        >
+          <User className="w-5 h-5" />
+          <span className={cn(
+            "text-sm font-medium transition-opacity duration-200",
+            isCollapsed ? "opacity-0 w-0" : "opacity-100"
+          )}>
+            Profile
+          </span>
+        </button>
+        <button
+          type="button"
+          onClick={handleSignOut}
+          className={cn(
+            "flex w-full items-center gap-3 px-4 py-2 rounded-lg transition-all duration-200 text-rose-500 hover:text-rose-600 hover:bg-gray-50",
+          )}
+        >
+          <LogOut className="w-5 h-5" />
+          <span className={cn(
+            "text-sm font-medium transition-opacity duration-200",
+            isCollapsed ? "opacity-0 w-0" : "opacity-100"
+          )}>
+            Sign Out
+          </span>
+        </button>
+      </div>
+    </nav>
   );
 };
 
@@ -111,13 +142,6 @@ const SidebarFooter = ({ isCollapsed = false }: { isCollapsed?: boolean }) => {
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const { signOut } = useClerk();
-  const router = useRouter();
-
-  const handleSignOut = async () => {
-    await signOut();
-    router.push('/auth');
-  };
 
   return (
     <>
@@ -139,28 +163,6 @@ const Sidebar = () => {
 
         <div className="overflow-y-auto">
           <SidebarFooter isCollapsed={isCollapsed} />
-        </div>
-
-        <div className={cn(
-          "p-4 border-t border-gray-200 transition-all duration-200",
-          isCollapsed ? "px-2" : "px-4"
-        )}>
-          <Button
-            variant="ghost"
-            onClick={handleSignOut}
-            className={cn(
-              "w-full justify-start text-rose-500 hover:text-rose-600 hover:bg-gray-100",
-              isCollapsed ? "px-2" : "px-4"
-            )}
-          >
-            <LogOut className="w-5 h-5" />
-            <span className={cn(
-              "ml-2 transition-opacity duration-200",
-              isCollapsed ? "opacity-0 w-0" : "opacity-100"
-            )}>
-              Logout
-            </span>
-          </Button>
         </div>
       </motion.aside>
 
@@ -192,10 +194,6 @@ const Sidebar = () => {
             >
               <div className="flex flex-col h-full">
                 <div className="flex items-center justify-between p-4">
-                  <Link href="/" className="flex items-center gap-2">
-                    <div className="bg-rose-500 rounded-lg p-2 text-white font-medium">NP</div>
-                    <span className="font-bold text-xl text-gray-900">NodePilot</span>
-                  </Link>
                   <button onClick={() => setIsOpen(false)}>
                     <X className="w-6 h-6 text-gray-400" />
                   </button>
@@ -207,17 +205,6 @@ const Sidebar = () => {
 
                 <div className="overflow-y-auto">
                   <SidebarFooter />
-                </div>
-
-                <div className="p-4 border-t border-gray-200">
-                  <Button
-                    variant="ghost"
-                    onClick={handleSignOut}
-                    className="w-full justify-start text-rose-500 hover:text-rose-600 hover:bg-gray-100"
-                  >
-                    <LogOut className="w-5 h-5 mr-2" />
-                    Logout
-                  </Button>
                 </div>
               </div>
             </motion.aside>
