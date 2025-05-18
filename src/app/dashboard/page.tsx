@@ -1,9 +1,22 @@
+"use client";
+
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { SignedIn, SignedOut, RedirectToSignIn } from "@clerk/nextjs";
+import { usePricing } from "@/hooks/usePricing";
+import { AlertCircle } from "lucide-react";
 
 export default function DashboardPage() {
+  const { 
+    remainingCredits, 
+    getCurrentPlan,
+    getTrialStatus,
+  } = usePricing();
+
+  const currentPlan = getCurrentPlan();
+  const trialStatus = getTrialStatus();
+
   return (
     <>
       <SignedIn>
@@ -13,6 +26,25 @@ export default function DashboardPage() {
               <h1 className="text-3xl font-bold mb-2">Welcome to NodePilot</h1>
               <p className="text-muted-foreground">Your AI-powered n8n automation platform</p>
             </div>
+
+            {trialStatus?.isActive && (
+              <Card className="bg-primary/5 border-primary/20">
+                <CardHeader>
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="h-5 w-5 text-primary" />
+                    <CardTitle>Trial Status</CardTitle>
+                  </div>
+                  <CardDescription>
+                    Your free trial ends in {trialStatus.daysLeft} days. Upgrade to continue using NodePilot.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button asChild>
+                    <Link href="/#pricing">Upgrade Now</Link>
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <Card>
@@ -41,12 +73,20 @@ export default function DashboardPage() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Subscribe</CardTitle>
-                  <CardDescription>Upgrade to a premium plan for more features</CardDescription>
+                  <CardTitle>Current Plan: {currentPlan.name}</CardTitle>
+                  <CardDescription>
+                    {currentPlan.interval === 'month' 
+                      ? `$${currentPlan.price}/month` 
+                      : currentPlan.interval === 'credits'
+                      ? `$${currentPlan.price}/${currentPlan.credits} credits`
+                      : 'Free Trial'}
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <Button variant="outline" className="w-full" asChild>
-                    <Link href="/#pricing">View Plans</Link>
+                    <Link href="/#pricing">
+                      {currentPlan.id === 'free' ? 'Upgrade Plan' : 'Change Plan'}
+                    </Link>
                   </Button>
                 </CardContent>
               </Card>
@@ -56,15 +96,23 @@ export default function DashboardPage() {
               <Card>
                 <CardHeader>
                   <CardTitle>Available Credits</CardTitle>
-                  <CardDescription>You have 500 credits remaining on your Free plan</CardDescription>
+                  <CardDescription>
+                    You have {remainingCredits} credits remaining on your {currentPlan.name} plan
+                    {currentPlan.creditExpiry && ` (expires in ${currentPlan.creditExpiry} days)`}
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="w-full bg-muted rounded-full h-2.5">
-                    <div className="bg-primary h-2.5 rounded-full w-[45%]" />
+                    <div 
+                      className="bg-primary h-2.5 rounded-full" 
+                      style={{ 
+                        width: `${Math.min(100, (remainingCredits / currentPlan.credits) * 100)}%` 
+                      }} 
+                    />
                   </div>
                   <div className="flex justify-between mt-2 text-sm text-muted-foreground">
                     <span>0</span>
-                    <span>500 credits</span>
+                    <span>{currentPlan.credits} credits</span>
                   </div>
                 </CardContent>
               </Card>

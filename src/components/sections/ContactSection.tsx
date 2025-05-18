@@ -43,14 +43,16 @@ export function ContactSection() {
             icon={<MessageCircle className="h-5 w-5 text-primary" />}
             title="DM Us"
             description={
-              <Link
-                href="https://discord.gg/BFnVZ9D4aG"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-primary hover:underline"
-              >
-                at <strong>Discord</strong>
-              </Link>
+              <Button variant="outline" size="lg" asChild>
+                <Link
+                  href="https://discord.gg/tVb7zvMY"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2"
+                >
+                  Join Discord Community
+                </Link>
+              </Button>
             }
           />
 

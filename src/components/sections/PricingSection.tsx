@@ -13,6 +13,7 @@ interface PricingTierProps {
   buttonLink: string;
   popular?: boolean;
   badge?: string;
+  trialDays?: number;
 }
 
 function PricingTier({
@@ -25,6 +26,7 @@ function PricingTier({
   buttonLink,
   popular,
   badge,
+  trialDays,
 }: PricingTierProps) {
   return (
     <Card className={`border ${popular ? 'border-primary/50 shadow-lg' : ''} flex flex-col h-full`}>
@@ -45,6 +47,11 @@ function PricingTier({
             <span className="text-3xl font-bold">{price}</span>
             <span className="text-muted-foreground ml-2">{priceDetail}</span>
           </div>
+          {trialDays && (
+            <p className="text-sm text-muted-foreground mt-1">
+              {trialDays}-day free trial
+            </p>
+          )}
         </div>
         <ul className="space-y-2">
           {features.map((feature) => (
@@ -73,64 +80,73 @@ export function PricingSection() {
     <section id="pricing" className="container mx-auto py-16 md:py-24">
       <div className="text-center mb-12">
         <h2 className="text-lg font-medium text-muted-foreground mb-2">Pricing</h2>
-        <h3 className="text-3xl md:text-4xl font-bold mb-4">Get more workflows</h3>
+        <h3 className="text-3xl md:text-4xl font-bold mb-4">Choose Your Plan</h3>
         <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-          Enjoy exclusive pricing for our new AI-driven automation platform. Unlock powerful workflows at an unbeatable value!
+          Start with our free trial or choose a plan that fits your automation needs. All plans include our core AI workflow generation.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <PricingTier
-          name="Free"
-          description="Basic support with limited daily prompts."
+          name="Free Trial"
+          description="Perfect for trying out NodePilot"
           price="$0"
-          priceDetail="/month"
+          priceDetail="/7 days"
+          trialDays={7}
           features={[
-            "Basic Support",
-            "500 Credits",
+            "50-100 credits (introductory)",
+            "Natural language → n8n JSON workflow",
+            "Step-by-step workflow guide",
+            "Basic support",
+            "Upgrade required after trial"
           ]}
-          buttonText="Start for Free"
-          buttonLink="/dashboard"
+          buttonText="Start Free Trial"
+          buttonLink="/signup"
         />
 
         <PricingTier
-          name="Discord"
-          description="Enhanced free tier for Discord community members."
-          price="$0"
+          name="Pro"
+          description="For serious automation builders"
+          price="$17.99"
           priceDetail="/month"
+          popular={true}
+          badge="MOST POPULAR"
           features={[
-            "Priority Support",
-            "1000 Credits",
+            "500 credits per month",
+            "All Free features included",
+            "Priority AI processing",
+            "Upload files/images for prompts",
+            "Retain all workflows",
+            "Multi-turn refinement chat"
           ]}
-          buttonText="Join Discord"
-          buttonLink="https://discord.gg/BFnVZ9D4aG"
+          buttonText="Go Pro"
+          buttonLink="/signup?plan=pro"
         />
 
         <PricingTier
-          name="Monthly"
-          description="Entry-level monthly plan with priority support."
-          price="$1.99"
-          priceDetail="/month"
+          name="Pay-As-You-Go"
+          description="Perfect for occasional use"
+          price="$5"
+          priceDetail="/100 requests"
           features={[
-            "Priority Support",
-            "2,000 Credits per Month",
+            "No subscription required",
+            "All standard generation features",
+            "Credits expire after 30 days",
+            "Great for occasional users",
+            "Pay only for what you need"
           ]}
-          buttonText="Subscribe Monthly"
-          buttonLink="/subscribe/monthly"
+          buttonText="Start PAYG"
+          buttonLink="/signup?plan=payg"
         />
+      </div>
 
-        <PricingTier
-          name="Annual"
-          description="Best value with significant yearly savings. Charged Annualy"
-          price="$12"
-          priceDetail="/month"
-          features={[
-            "High Priority Support",
-            "150K Prompts Annually",
-          ]}
-          buttonText="Subscribe Annually"
-          buttonLink="/subscribe/annually"
-        />
+      <div className="mt-12 text-center">
+        <p className="text-sm text-muted-foreground">
+          All plans include our core workflow generation features. Need a custom plan?{" "}
+          <Link href="/contact" className="text-primary hover:underline">
+            Contact us
+          </Link>
+        </p>
       </div>
     </section>
   );

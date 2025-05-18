@@ -1,50 +1,42 @@
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { MessageSquare } from "lucide-react";
+import Link from "next/link";
 
 export function DiscordCTASection() {
   return (
     <section className="container mx-auto py-16 md:py-24">
-      <div className="bg-muted/40 border rounded-2xl p-8 md:p-12 flex flex-col md:flex-row items-center justify-between gap-8">
-        <div className="flex items-center gap-4">
-          <div className="bg-primary/10 rounded-full p-4">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="36"
-              height="36"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="text-primary"
-            >
-              <circle cx="12" cy="12" r="10" />
-              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
-              <line x1="12" y1="17" x2="12.01" y2="17" />
-            </svg>
-          </div>
-          <div>
-            <h3 className="text-2xl md:text-3xl font-bold mb-2">
-              Ready to join this{" "}
-              <span className="text-primary">Community?</span>
-            </h3>
-            <p className="text-lg text-muted-foreground">
-              Join our vibrant Discord community! Connect, share, and grow with like-minded enthusiasts. Click to dive in!
+      <Card className="bg-primary/5 border-primary/20">
+        <div className="px-6 py-12 sm:px-12 lg:px-16">
+          <div className="flex flex-col items-center space-y-4 text-center">
+            <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary/10">
+              <MessageSquare className="w-8 h-8 text-primary" />
+            </div>
+            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
+              Join Our Community
+            </h2>
+            <p className="max-w-[900px] text-zinc-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed dark:text-zinc-400">
+              Connect with fellow automation enthusiasts, share workflows, and get help from our community.
+              Join our Discord server to stay up to date with the latest features and updates.
             </p>
+            <Button
+              size="lg"
+              className="bg-primary hover:bg-primary/90"
+              asChild
+            >
+              <Link
+                href="https://discord.gg/tVb7zvMY"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2"
+              >
+                <MessageSquare className="w-5 h-5" />
+                Join Discord Server
+              </Link>
+            </Button>
           </div>
         </div>
-        <Button size="lg" asChild className="ml-auto">
-          <Link
-            href="https://discord.gg/BFnVZ9D4aG"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="whitespace-nowrap"
-          >
-            Join Discord
-          </Link>
-        </Button>
-      </div>
+      </Card>
     </section>
   );
 }

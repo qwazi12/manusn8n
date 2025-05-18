@@ -61,10 +61,10 @@ export function Footer() {
             <h3 className="font-bold text-lg">Socials</h3>
             <div>
               <Link
-                href="https://discord.gg/BFnVZ9D4aG"
+                href="https://discord.gg/tVb7zvMY"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="opacity-60 hover:opacity-100"
+                className="text-muted-foreground hover:text-foreground"
               >
                 Discord
               </Link>

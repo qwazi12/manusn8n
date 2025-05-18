@@ -25,7 +25,7 @@ export function HeroSection() {
             <Link href="/dashboard">Start Automating</Link>
           </Button>
           <Button variant="outline" size="lg" asChild>
-            <Link href="https://discord.gg/BFnVZ9D4aG" target="_blank" rel="noopener noreferrer">
+            <Link href="https://discord.gg/tVb7zvMY" target="_blank" rel="noopener noreferrer">
               Join the Community
             </Link>
           </Button>
