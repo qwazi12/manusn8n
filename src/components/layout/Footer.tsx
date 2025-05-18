@@ -10,12 +10,12 @@ export function Footer() {
             <Link href="/" className="flex font-bold items-center">
               <Image
                 src="/favicon.png"
-                alt="n8nCraft Logo"
+                alt="NodePilot Logo"
                 width={28}
                 height={28}
                 className="mr-2"
               />
-              <h3 className="text-2xl">n8nCraft</h3>
+              <h3 className="text-2xl">NodePilot</h3>
             </Link>
           </div>
 

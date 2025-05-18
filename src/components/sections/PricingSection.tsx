@@ -117,8 +117,6 @@ export function PricingSection() {
           ]}
           buttonText="Subscribe Monthly"
           buttonLink="/subscribe/monthly"
-          popular={true}
-          badge="Most Popular"
         />
 
         <PricingTier
@@ -132,7 +130,6 @@ export function PricingSection() {
           ]}
           buttonText="Subscribe Annually"
           buttonLink="/subscribe/annually"
-          badge="Save $30!"
         />
       </div>
     </section>

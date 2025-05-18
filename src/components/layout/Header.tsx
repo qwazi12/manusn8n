@@ -6,6 +6,7 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
+import { UserButton, SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
 
 export function Header() {
   const [isOpen, setIsOpen] = useState(false);
@@ -15,12 +16,12 @@ export function Header() {
       <Link href="/" className="font-bold text-lg flex items-center">
         <Image
           src="/favicon.png"
-          alt="n8nCraft Logo"
+          alt="NodePilot Logo"
           width={28}
           height={28}
           className="mr-2"
         />
-        n8nCraft
+        NodePilot
       </Link>
 
       {/* Mobile Menu */}
@@ -48,12 +49,20 @@ export function Header() {
               </Button>
             </div>
             <div className="flex flex-col gap-2">
-              <Button variant="outline" asChild>
-                <Link href="/signin" onClick={() => setIsOpen(false)}>Login</Link>
-              </Button>
-              <Button asChild>
-                <Link href="/signup" onClick={() => setIsOpen(false)}>Sign Up Now</Link>
-              </Button>
+              <SignedIn>
+                <Button variant="default" asChild onClick={() => setIsOpen(false)}>
+                  <Link href="/dashboard">Dashboard</Link>
+                </Button>
+                <UserButton afterSignOutUrl="/" />
+              </SignedIn>
+              <SignedOut>
+                <SignInButton mode="modal">
+                  <Button variant="outline">Login</Button>
+                </SignInButton>
+                <Button asChild>
+                  <Link href="/signup" onClick={() => setIsOpen(false)}>Sign Up Now</Link>
+                </Button>
+              </SignedOut>
             </div>
           </SheetContent>
         </Sheet>
@@ -75,13 +84,21 @@ export function Header() {
         </Button>
       </div>
 
-      <div className="hidden lg:flex gap-3">
-        <Button variant="outline" asChild className="h-10 md:h-[34px]">
-          <Link href="/signin">Login</Link>
-        </Button>
-        <Button asChild className="h-10 md:h-[34px]">
-          <Link href="/signup">Sign Up Now</Link>
-        </Button>
+      <div className="hidden lg:flex gap-3 items-center">
+        <SignedIn>
+          <Button variant="default" asChild className="h-10 md:h-[34px]">
+            <Link href="/dashboard">Dashboard</Link>
+          </Button>
+          <UserButton afterSignOutUrl="/" />
+        </SignedIn>
+        <SignedOut>
+          <SignInButton mode="modal">
+            <Button variant="outline" className="h-10 md:h-[34px]">Login</Button>
+          </SignInButton>
+          <Button asChild className="h-10 md:h-[34px]">
+            <Link href="/signup">Sign Up Now</Link>
+          </Button>
+        </SignedOut>
       </div>
     </header>
   );

@@ -11,7 +11,7 @@ export default function TermsOfServicePage() {
 
           <p className="mt-4">
             Please read these Terms of Service ("Terms", "Terms of Service") carefully before using the
-            https://n8ncraft.com website operated by n8nCraft.
+            https://nodepilot.com website operated by NodePilot.
           </p>
 
           <p className="mt-4">
@@ -59,7 +59,7 @@ export default function TermsOfServicePage() {
           <h2 className="text-xl font-bold mt-6 mb-2">Service Usage</h2>
 
           <p>
-            You may not use the n8nCraft service for any illegal or unauthorized purpose nor may you, in the
+            You may not use the NodePilot service for any illegal or unauthorized purpose nor may you, in the
             use of the Service, violate any laws in your jurisdiction (including but not limited to copyright laws).
           </p>
 

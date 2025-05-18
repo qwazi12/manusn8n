@@ -10,12 +10,12 @@ import Link from "next/link";
 export function FAQSection() {
   const faqs = [
     {
-      question: "What is n8nCraft?",
-      answer: "n8nCraft is an AI-powered platform that helps you create and optimize n8n automation workflows. It leverages artificial intelligence to simplify the process of building complex automations, allowing you to focus on your business goals rather than technical implementation details."
+      question: "What is NodePilot?",
+      answer: "NodePilot is an AI-powered platform that helps you create and optimize n8n automation workflows. It leverages artificial intelligence to simplify the process of building complex automations, allowing you to focus on what matters most."
     },
     {
       question: "Do I need coding skills to use this platform?",
-      answer: "No coding skills are required to use n8nCraft. Our AI-driven interface is designed to be user-friendly and accessible to everyone, regardless of technical background. If you're familiar with n8n, you'll find it even easier to get started."
+      answer: "No coding skills are required to use NodePilot. Our AI-driven interface is designed to be user-friendly and accessible to everyone, regardless of technical background. If you're familiar with n8n, you'll find it even easier to get started."
     },
     {
       question: "Can I really create workflows for free?",

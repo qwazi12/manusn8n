@@ -10,7 +10,7 @@ export default function RefundPolicyPage() {
           <p>Last updated: <strong>27/03/2025</strong></p>
 
           <p className="mt-4">
-            Thank you for choosing n8nCraft. We value your satisfaction and want to ensure
+            Thank you for choosing NodePilot. We value your satisfaction and want to ensure
             you have a positive experience with our services. This Refund Policy outlines our
             guidelines regarding refunds for our subscription plans.
           </p>
