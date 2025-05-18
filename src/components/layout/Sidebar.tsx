@@ -31,8 +31,8 @@ const SidebarContent = ({ isCollapsed = false }: { isCollapsed?: boolean }) => {
   };
 
   return (
-    <nav className="flex-1 px-2 py-4 mt-2">
-      <div className="space-y-1">
+    <nav className="flex-1 px-2 py-1 mt-0">
+      <div className="space-y-0.5">
         <Link
           href="/dashboard"
           className={cn(
@@ -108,35 +108,7 @@ const SidebarContent = ({ isCollapsed = false }: { isCollapsed?: boolean }) => {
 const SidebarFooter = ({ isCollapsed = false }: { isCollapsed?: boolean }) => {
   const { user } = useUser();
   
-  return (
-    <div className={cn(
-      "space-y-6 text-sm px-2",
-      isCollapsed ? "absolute bottom-16 left-0 right-0 opacity-0" : "opacity-100",
-      "transition-all duration-200"
-    )}>
-      <div className="border-t border-gray-200 pt-4">
-        <div className="font-semibold text-gray-900">Current Plan: Free Trial</div>
-        <p className="text-xs text-gray-500">Free Trial</p>
-        <Link 
-          href="/#pricing" 
-          className="mt-2 block w-full rounded-md border border-gray-300 text-center py-2 text-sm hover:bg-gray-50 transition"
-        >
-          Upgrade Plan
-        </Link>
-      </div>
-      <div className="border-t border-gray-200 pt-4">
-        <div className="font-semibold text-gray-900">Available Credits</div>
-        <p className="text-xs text-gray-500">You have 100 credits remaining on your Free Trial plan</p>
-        <div className="relative mt-2 h-2 w-full bg-gray-100 rounded-full">
-          <div className="absolute top-0 left-0 h-2 rounded-full bg-rose-500" style={{ width: '100%' }} />
-        </div>
-        <div className="flex justify-between text-xs mt-1 text-gray-500">
-          <span>0</span>
-          <span>100 credits</span>
-        </div>
-      </div>
-    </div>
-  );
+  return null;
 };
 
 const Sidebar = () => {

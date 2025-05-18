@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { SignedIn, SignedOut, RedirectToSignIn } from "@clerk/nextjs";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export default function DashboardPage() {
   return (
@@ -30,6 +31,9 @@ export default function DashboardPage() {
               <Button className="w-full bg-rose-500 hover:bg-rose-600 text-white">
                 Generate Workflow
               </Button>
+              <div className="flex justify-end">
+                <span className="text-xs text-gray-500">100 credits</span>
+              </div>
             </CardContent>
           </Card>
         </div>
