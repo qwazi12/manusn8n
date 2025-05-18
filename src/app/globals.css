@@ -10,6 +10,13 @@
   font-display: swap;
 }
 
+/* Add full height styles */
+html,
+body {
+  height: 100%;
+  min-height: 100%;
+}
+
 @layer base {
   :root {
     --background: 0 0% 98.4%; /* #fbfafa */
