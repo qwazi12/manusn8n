@@ -4,12 +4,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { SignedIn, SignedOut, RedirectToSignIn, useUser } from "@clerk/nextjs";
 import { useState } from "react";
 import ChatInputBar from "@/components/chat/ChatInputBar";
-import { useFeatureGate } from "@/lib/hooks/useFeatureGate";
 
 export default function DashboardPage() {
   const { user } = useUser();
   const userName = user?.firstName || "there";
-  const { hasFeatureAccess } = useFeatureGate();
 
   // State for messages
   const [messages, setMessages] = useState<Array<{ content: string; files: File[] }>>([]);
@@ -29,26 +27,21 @@ export default function DashboardPage() {
             <h2 className="text-2xl text-gray-700 font-normal">What can I do for you?</h2>
           </div>
 
-          {/* Chat input with feature check */}
-          {hasFeatureAccess('workflow_generation') ? (
-            <>
-              <ChatInputBar onSendMessage={handleSendMessage} />
-              <div className="flex justify-end mt-3 mb-8">
-                <span className="text-sm text-gray-500">100 credits</span>
-              </div>
-            </>
-          ) : (
-            <div className="text-center text-primary font-semibold mb-8">
-              Upgrade to Pro or start your free trial to generate workflows
-            </div>
-          )}
+          {/* Chat input */}
+          <ChatInputBar onSendMessage={handleSendMessage} />
+          <div className="flex justify-end mt-3 mb-8">
+            <span className="text-sm text-gray-500">100 credits</span>
+          </div>
 
           <div className="space-y-6">
             <h3 className="text-lg font-semibold text-gray-900">Quick Start Templates</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Card 
                 className="bg-gray-900 border-0 hover:bg-gray-800 transition-colors cursor-pointer group"
-                onClick={() => handleSendMessage("Create an automated marketing campaign workflow that integrates email, social media, and CRM platforms for coordinated multi-channel marketing efforts.", [])}
+                onClick={() => handleSendMessage(
+                  "Create an automated marketing campaign workflow that integrates email, social media, and CRM platforms for coordinated multi-channel marketing efforts.",
+                  []
+                )}
               >
                 <CardHeader>
                   <div className="flex items-center gap-3">
@@ -67,7 +60,10 @@ export default function DashboardPage() {
 
               <Card 
                 className="bg-gray-900 border-0 hover:bg-gray-800 transition-colors cursor-pointer group"
-                onClick={() => handleSendMessage("Build an AI-powered lead scoring system that analyzes customer data, interaction history, and behavior patterns to prioritize and rank sales leads.", [])}
+                onClick={() => handleSendMessage(
+                  "Build an AI-powered lead scoring system that analyzes customer data, interaction history, and behavior patterns to prioritize and rank sales leads.",
+                  []
+                )}
               >
                 <CardHeader>
                   <div className="flex items-center gap-3">
@@ -86,7 +82,10 @@ export default function DashboardPage() {
 
               <Card 
                 className="bg-gray-900 border-0 hover:bg-gray-800 transition-colors cursor-pointer group"
-                onClick={() => handleSendMessage("Design a personalized recommendation engine that analyzes user behavior and preferences to generate tailored content and product suggestions for improved engagement.", [])}
+                onClick={() => handleSendMessage(
+                  "Design a personalized recommendation engine that analyzes user behavior and preferences to generate tailored content and product suggestions for improved engagement.",
+                  []
+                )}
               >
                 <CardHeader>
                   <div className="flex items-center gap-3">
@@ -105,7 +104,10 @@ export default function DashboardPage() {
 
               <Card 
                 className="bg-gray-900 border-0 hover:bg-gray-800 transition-colors cursor-pointer group"
-                onClick={() => handleSendMessage("Set up an automated social media content scheduler that manages post timing, content distribution, and engagement tracking across multiple platforms.", [])}
+                onClick={() => handleSendMessage(
+                  "Set up an automated social media content scheduler that manages post timing, content distribution, and engagement tracking across multiple platforms.",
+                  []
+                )}
               >
                 <CardHeader>
                   <div className="flex items-center gap-3">
