@@ -10,6 +10,7 @@
     "format": "bunx biome format --write"
   },
   "dependencies": {
+    "@clerk/clerk-sdk-node": "^4.13.23",
     "@clerk/nextjs": "^6.19.4",
     "@hookform/resolvers": "^5.0.1",
     "@radix-ui/react-accordion": "^1.2.10",
@@ -27,6 +28,7 @@
     "react-dom": "^19.1.0",
     "react-hook-form": "^7.56.3",
     "sonner": "^2.0.3",
+    "svix": "^1.65.0",
     "tailwind-merge": "^3.3.0",
     "tailwindcss-animate": "^1.0.7",
     "zod": "^3.24.4"

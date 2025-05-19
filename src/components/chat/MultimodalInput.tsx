@@ -16,6 +16,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Loader2 as LoaderIcon, X as XIcon } from 'lucide-react';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { twMerge } from 'tailwind-merge';
+import { Protect } from '@clerk/nextjs';
 
 const clsx = (...args: any[]) => args.filter(Boolean).join(' ');
 
@@ -32,6 +33,18 @@ export interface UIMessage {
   content: string;
   role: string;
   attachments?: Attachment[];
+}
+
+export interface MultimodalInputProps {
+  chatId: string;
+  messages: UIMessage[];
+  attachments: Attachment[];
+  setAttachments: Dispatch<SetStateAction<Attachment[]>>;
+  onSendMessage: (data: { input: string; attachments: Attachment[] }) => void;
+  onStopGenerating: () => void;
+  isGenerating: boolean;
+  canSend: boolean;
+  selectedVisibilityType: 'public' | 'private' | 'unlisted' | string;
 }
 
 type VisibilityType = 'public' | 'private' | 'unlisted' | string;
@@ -105,20 +118,31 @@ const Textarea = React.forwardRef<
 });
 Textarea.displayName = 'Textarea';
 
-const StopIcon = ({ size = 16 }: { size?: number }) => (
-  <svg height={size} viewBox="0 0 16 16" width={size} style={{ color: 'currentcolor' }}>
+interface IconProps {
+  size?: number;
+  className?: string;
+}
+
+const StopIcon = ({ size = 16, className }: IconProps) => (
+  <svg 
+    height={size} 
+    viewBox="0 0 16 16" 
+    width={size} 
+    style={{ color: 'currentcolor' }}
+    className={className}
+  >
     <path fillRule="evenodd" clipRule="evenodd" d="M3 3H13V13H3V3Z" fill="currentColor" />
   </svg>
 );
 
-const PaperclipIcon = ({ size = 16 }: { size?: number }) => (
+const PaperclipIcon = ({ size = 16, className }: IconProps) => (
   <svg
     height={size}
     strokeLinejoin="round"
     viewBox="0 0 16 16"
     width={size}
     style={{ color: 'currentcolor' }}
-    className="-rotate-45"
+    className={cn("-rotate-45", className)}
   >
     <path
       fillRule="evenodd"
@@ -129,13 +153,14 @@ const PaperclipIcon = ({ size = 16 }: { size?: number }) => (
   </svg>
 );
 
-const ArrowUpIcon = ({ size = 16 }: { size?: number }) => (
+const ArrowUpIcon = ({ size = 16, className }: IconProps) => (
   <svg
     height={size}
     strokeLinejoin="round"
     viewBox="0 0 16 16"
     width={size}
     style={{ color: 'currentcolor' }}
+    className={className}
   >
     <path
       fillRule="evenodd"
@@ -146,19 +171,7 @@ const ArrowUpIcon = ({ size = 16 }: { size?: number }) => (
   </svg>
 );
 
-interface MultimodalInputProps {
-  chatId: string;
-  messages: UIMessage[];
-  attachments: Attachment[];
-  setAttachments: Dispatch<SetStateAction<Attachment[]>>;
-  onSendMessage: (data: { input: string; attachments: Attachment[] }) => void;
-  onStopGenerating: () => void;
-  isGenerating: boolean;
-  canSend: boolean;
-  selectedVisibilityType: VisibilityType;
-}
-
-const PureMultimodalInput = memo(function PureMultimodalInput({
+export const PureMultimodalInput = memo(function PureMultimodalInput({
   chatId,
   messages,
   attachments,
@@ -248,15 +261,17 @@ const PureMultimodalInput = memo(function PureMultimodalInput({
         )}
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              type="button"
-              disabled={isGenerating}
-              onClick={handleAttachmentClick}
-            >
-              <PaperclipIcon />
-            </Button>
+            <Protect feature="file_upload_pro" fallback={<span className="text-xs text-gray-400">Upgrade to Pro to upload files</span>}>
+              <Button
+                variant="ghost"
+                size="icon"
+                type="button"
+                disabled={isGenerating}
+                onClick={handleAttachmentClick}
+              >
+                <PaperclipIcon />
+              </Button>
+            </Protect>
           </div>
           <div className="flex items-center gap-2">
             {isGenerating ? (
@@ -276,7 +291,7 @@ const PureMultimodalInput = memo(function PureMultimodalInput({
                 disabled={!canSend || (!input.trim() && attachments.length === 0)}
                 className="shrink-0 bg-primary hover:bg-accent-salmon text-white"
               >
-                <ArrowUpIcon className="text-white" />
+                <ArrowUpIcon />
               </Button>
             )}
           </div>
@@ -284,6 +299,4 @@ const PureMultimodalInput = memo(function PureMultimodalInput({
       </div>
     </div>
   );
-});
-
-export { PureMultimodalInput }; 
+}); 
