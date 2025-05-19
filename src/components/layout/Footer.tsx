@@ -69,6 +69,14 @@ export function Footer() {
                 Discord
               </Link>
             </div>
+            <div>
+              <Link
+                href="/blog"
+                className="text-muted-foreground hover:text-foreground"
+              >
+                Blog
+              </Link>
+            </div>
           </div>
         </div>
       </div>

@@ -47,6 +47,9 @@ export function Header() {
               <Button variant="ghost" asChild>
                 <Link href="/#faq" onClick={() => setIsOpen(false)}>FAQ</Link>
               </Button>
+              <Button variant="ghost" asChild>
+                <Link href="/blog" onClick={() => setIsOpen(false)}>Blog</Link>
+              </Button>
             </div>
             <div className="flex flex-col gap-2">
               <SignedIn>
@@ -81,6 +84,9 @@ export function Header() {
         </Button>
         <Button variant="ghost" asChild>
           <Link href="/#faq">FAQ</Link>
+        </Button>
+        <Button variant="ghost" asChild>
+          <Link href="/blog">Blog</Link>
         </Button>
       </div>
 
