@@ -1,41 +1,155 @@
 "use client";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { SignedIn, SignedOut, RedirectToSignIn } from "@clerk/nextjs";
+import { SignedIn, SignedOut, RedirectToSignIn, useUser } from "@clerk/nextjs";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { Paperclip, ChevronDown, Mic, Send } from "lucide-react";
+import { PureMultimodalInput } from "@/components/chat/MultimodalInput";
+import { useState } from "react";
+import type { Attachment, UIMessage } from "@/components/chat/MultimodalInput";
 
 export default function DashboardPage() {
+  const { user } = useUser();
+  const userName = user?.firstName || "there";
+
+  // State for chat/messages and attachments
+  const [messages, setMessages] = useState<UIMessage[]>([]);
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [canSend, setCanSend] = useState(true);
+  const [input, setInput] = useState('');
+  const chatId = "main";
+  const selectedVisibilityType = "private";
+
+  // Handler for sending a message
+  const onSendMessage = ({ input, attachments }: { input: string; attachments: Attachment[] }) => {
+    setIsGenerating(true);
+    // Simulate async workflow generation
+    setTimeout(() => {
+      setMessages((prev) => [
+        ...prev,
+        { id: Date.now().toString(), content: input, role: "user", attachments },
+      ]);
+      setIsGenerating(false);
+    }, 1000);
+  };
+
+  // Handler for stopping generation
+  const onStopGenerating = () => {
+    setIsGenerating(false);
+  };
+
+  // Handler for template selection
+  const handleTemplateClick = (template: string) => {
+    onSendMessage({ input: template, attachments: [] });
+  };
+
   return (
     <>
       <SignedIn>
-        <div className="flex flex-col gap-6 mt-16">
-          <div>
-            <h1 className="text-2xl font-semibold mb-2">Create Workflow</h1>
-            <p className="text-gray-500 text-sm">Generate a new n8n automation workflow using AI</p>
+        <div className="max-w-4xl mx-auto mt-32 px-4">
+          <div className="mb-10 text-center">
+            <h1 className="text-4xl font-bold text-gray-900 mb-2">Hello {userName}</h1>
+            <h2 className="text-2xl text-gray-700 font-normal">What can I do for you?</h2>
+          </div>
+          <PureMultimodalInput
+            chatId={chatId}
+            messages={messages}
+            attachments={attachments}
+            setAttachments={setAttachments}
+            onSendMessage={onSendMessage}
+            onStopGenerating={onStopGenerating}
+            isGenerating={isGenerating}
+            canSend={canSend}
+            selectedVisibilityType={selectedVisibilityType}
+          />
+          <div className="flex justify-end mt-3 mb-8">
+            <span className="text-sm text-gray-500">100 credits</span>
           </div>
 
-          <Card className="bg-white shadow-sm">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg">What would you like to automate?</CardTitle>
-              <CardDescription>
-                Describe your automation needs in natural language
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Textarea
-                placeholder="Example: I want to automatically save new Gmail attachments to Google Drive and notify me on Slack"
-                className="min-h-[120px] resize-none"
-              />
-              <Button className="w-full bg-rose-500 hover:bg-rose-600 text-white">
-                Generate Workflow
-              </Button>
-              <div className="flex justify-end">
-                <span className="text-xs text-gray-500">100 credits</span>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="space-y-6">
+            <h3 className="text-lg font-semibold text-gray-900">Quick Start Templates</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Card 
+                className="bg-gray-900 border-0 hover:bg-gray-800 transition-colors cursor-pointer group"
+                onClick={() => handleTemplateClick("Create an automated marketing campaign workflow that integrates email, social media, and CRM platforms for coordinated multi-channel marketing efforts.")}
+              >
+                <CardHeader>
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-rose-500/10">
+                      <svg className="w-5 h-5 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <CardTitle className="text-white group-hover:text-rose-500 transition-colors">Automate Marketing Campaigns</CardTitle>
+                      <CardDescription className="text-gray-400">for managing multi-channel marketing efforts</CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+              </Card>
+
+              <Card 
+                className="bg-gray-900 border-0 hover:bg-gray-800 transition-colors cursor-pointer group"
+                onClick={() => handleTemplateClick("Build an AI-powered lead scoring system that analyzes customer data, interaction history, and behavior patterns to prioritize and rank sales leads.")}
+              >
+                <CardHeader>
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-rose-500/10">
+                      <svg className="w-5 h-5 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <CardTitle className="text-white group-hover:text-rose-500 transition-colors">AI-Powered Lead Scoring</CardTitle>
+                      <CardDescription className="text-gray-400">for prioritizing sales leads</CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+              </Card>
+
+              <Card 
+                className="bg-gray-900 border-0 hover:bg-gray-800 transition-colors cursor-pointer group"
+                onClick={() => handleTemplateClick("Design a personalized recommendation engine that analyzes user behavior and preferences to generate tailored content and product suggestions for improved engagement.")}
+              >
+                <CardHeader>
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-rose-500/10">
+                      <svg className="w-5 h-5 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <CardTitle className="text-white group-hover:text-rose-500 transition-colors">Generate Personalized Recommendations</CardTitle>
+                      <CardDescription className="text-gray-400">for improving user engagement</CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+              </Card>
+
+              <Card 
+                className="bg-gray-900 border-0 hover:bg-gray-800 transition-colors cursor-pointer group"
+                onClick={() => handleTemplateClick("Set up an automated social media content scheduler that manages post timing, content distribution, and engagement tracking across multiple platforms.")}
+              >
+                <CardHeader>
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-rose-500/10">
+                      <svg className="w-5 h-5 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <CardTitle className="text-white group-hover:text-rose-500 transition-colors">Social Media Content Scheduler</CardTitle>
+                      <CardDescription className="text-gray-400">for automating social media posts</CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+              </Card>
+            </div>
+          </div>
+          
         </div>
       </SignedIn>
       <SignedOut>
