@@ -48,7 +48,6 @@ function PricingTier({
       </CardContent>
       <CardFooter>
         <Button
-          variant={popular ? "default" : "outline"}
           className="w-full"
           asChild
         >

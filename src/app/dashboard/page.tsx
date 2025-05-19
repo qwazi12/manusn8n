@@ -78,13 +78,13 @@ export default function DashboardPage() {
               >
                 <CardHeader>
                   <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-rose-500/10">
-                      <svg className="w-5 h-5 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <div className="p-2 rounded-lg bg-primary/10">
+                      <svg className="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                       </svg>
                     </div>
                     <div>
-                      <CardTitle className="text-white group-hover:text-rose-500 transition-colors">Automate Marketing Campaigns</CardTitle>
+                      <CardTitle className="text-white group-hover:text-primary transition-colors">Automate Marketing Campaigns</CardTitle>
                       <CardDescription className="text-gray-400">for managing multi-channel marketing efforts</CardDescription>
                     </div>
                   </div>
@@ -97,13 +97,13 @@ export default function DashboardPage() {
               >
                 <CardHeader>
                   <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-rose-500/10">
-                      <svg className="w-5 h-5 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <div className="p-2 rounded-lg bg-primary/10">
+                      <svg className="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                       </svg>
                     </div>
                     <div>
-                      <CardTitle className="text-white group-hover:text-rose-500 transition-colors">AI-Powered Lead Scoring</CardTitle>
+                      <CardTitle className="text-white group-hover:text-primary transition-colors">AI-Powered Lead Scoring</CardTitle>
                       <CardDescription className="text-gray-400">for prioritizing sales leads</CardDescription>
                     </div>
                   </div>
@@ -116,13 +116,13 @@ export default function DashboardPage() {
               >
                 <CardHeader>
                   <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-rose-500/10">
-                      <svg className="w-5 h-5 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <div className="p-2 rounded-lg bg-primary/10">
+                      <svg className="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                       </svg>
                     </div>
                     <div>
-                      <CardTitle className="text-white group-hover:text-rose-500 transition-colors">Generate Personalized Recommendations</CardTitle>
+                      <CardTitle className="text-white group-hover:text-primary transition-colors">Generate Personalized Recommendations</CardTitle>
                       <CardDescription className="text-gray-400">for improving user engagement</CardDescription>
                     </div>
                   </div>
@@ -135,13 +135,13 @@ export default function DashboardPage() {
               >
                 <CardHeader>
                   <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-rose-500/10">
-                      <svg className="w-5 h-5 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <div className="p-2 rounded-lg bg-primary/10">
+                      <svg className="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
                     </div>
                     <div>
-                      <CardTitle className="text-white group-hover:text-rose-500 transition-colors">Social Media Content Scheduler</CardTitle>
+                      <CardTitle className="text-white group-hover:text-primary transition-colors">Social Media Content Scheduler</CardTitle>
                       <CardDescription className="text-gray-400">for automating social media posts</CardDescription>
                     </div>
                   </div>

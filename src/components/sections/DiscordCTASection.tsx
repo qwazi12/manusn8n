@@ -21,7 +21,6 @@ export function DiscordCTASection() {
             </p>
             <Button
               size="lg"
-              className="bg-primary hover:bg-primary/90"
               asChild
             >
               <Link

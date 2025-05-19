@@ -42,18 +42,18 @@ export default function Blog() {
           </p>
           <ul className="list-none space-y-2 mb-8">
             <li className="flex items-center text-gray-700">
-              <span className="text-rose-500 mr-2">✓</span> Get instant workflow generation
+              <span className="text-primary mr-2">✓</span> Get instant workflow generation
             </li>
             <li className="flex items-center text-gray-700">
-              <span className="text-rose-500 mr-2">✓</span> Clear explanations for every step
+              <span className="text-primary mr-2">✓</span> Clear explanations for every step
             </li>
             <li className="flex items-center text-gray-700">
-              <span className="text-rose-500 mr-2">✓</span> Copy-ready n8n workflows
+              <span className="text-primary mr-2">✓</span> Copy-ready n8n workflows
             </li>
           </ul>
           <div className="mt-12 flex justify-center gap-4">
             <SignUpButton mode="modal">
-              <Button className="bg-rose-500 hover:bg-rose-600 text-white">
+              <Button>
                 Get Started Free
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>

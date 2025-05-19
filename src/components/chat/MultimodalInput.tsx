@@ -274,13 +274,9 @@ const PureMultimodalInput = memo(function PureMultimodalInput({
                 size="icon"
                 onClick={handleSend}
                 disabled={!canSend || (!input.trim() && attachments.length === 0)}
-                className="shrink-0 bg-rose-500 hover:bg-rose-600"
+                className="shrink-0 bg-primary hover:bg-accent-salmon text-white"
               >
-                {isGenerating ? (
-                  <LoaderIcon className="animate-spin" />
-                ) : (
-                  <ArrowUpIcon />
-                )}
+                <ArrowUpIcon className="text-white" />
               </Button>
             )}
           </div>
