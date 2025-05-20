@@ -31,6 +31,9 @@ const nextConfig = {
       },
     ],
   },
+  experimental: {
+    allowedDevOrigins: ['*.ngrok-free.app']
+  }
 };
 
 module.exports = nextConfig;
