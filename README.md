@@ -1,71 +1,107 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# NodePilot Implementation Guide
+
+This document provides a comprehensive guide for implementing the NodePilot application, a SaaS product focused on n8n workflow automation.
+
+## Project Structure
+
+The implementation follows a modular architecture with clear separation of concerns:
+
+```
+/backend
+├── src/
+│   ├── config/           # Configuration files
+│   ├── controllers/      # Request handlers
+│   ├── middleware/       # Custom middleware
+│   ├── models/           # Data models
+│   ├── routes/           # API routes
+│   ├── services/         # Business logic
+│   │   ├── ai/           # AI service with dual-model approach
+│   │   ├── batch/        # Batch processing system
+│   │   ├── cache/        # Caching system
+│   │   ├── credit/       # Credit management
+│   │   ├── database/     # Database operations
+│   │   ├── templates/    # Node templates
+│   │   └── workflow/     # Workflow operations
+│   ├── utils/            # Utility functions
+│   ├── app.ts            # Express application setup
+│   └── server.ts         # Server entry point
+└── package.json          # Dependencies
+
+/frontend (Next.js)
+├── src/
+│   ├── app/              # Next.js App Router
+│   ├── components/       # React components
+│   ├── hooks/            # Custom React hooks
+│   ├── lib/              # Utility functions
+│   └── types/            # TypeScript type definitions
+└── package.json          # Dependencies
+```
+
+## Backend Implementation
+
+The backend is built with Express.js and TypeScript, providing a robust API for the frontend.
+
+### Core Services
+
+1. **AI Service**: Implements a dual-model approach with GPT-4.1-nano for drafts and GPT-4.1-mini for polishing.
+2. **Credit System**: Manages user credits for workflow generation.
+3. **Caching System**: Caches similar requests to improve performance.
+4. **Batch Processing**: Handles multiple workflow generation requests efficiently.
+5. **Template System**: Provides precomputed node templates for common patterns.
+
+### API Routes
+
+- `/api/workflows`: Workflow generation and management
+- `/api/credits`: Credit management
+- `/api/users`: User profile and settings
+- `/api/auth`: Authentication
+- `/api/batch`: Batch processing
+- `/api/templates`: Node templates
+
+## Frontend Implementation
+
+The frontend is built with Next.js, React, and TypeScript, providing a modern and responsive user interface.
+
+### Key Components
+
+1. **Workflow Visualization**: Interactive visualization of generated workflows
+2. **Chat Interface**: Enhanced chat input with file upload
+3. **Dashboard**: User dashboard with workflow management
+4. **Credit Management**: Credit usage visualization and purchase options
+5. **Template Library**: Browse and manage node templates
+
+## Integration Points
+
+### External Services
+
+- **OpenAI API**: For GPT-4.1-nano and GPT-4.1-mini models
+- **Redis**: For caching similar requests
+- **Supabase**: For database operations
+- **Clerk**: For authentication
+
+### Placeholder Strategy
+
+All placeholders follow this format:
+
+```typescript
+// PLACEHOLDER: [Description of what needs to be added]
+// INTEGRATION: [Instructions for integrating with real service]
+// EXAMPLE: [Example code for reference]
+
+// Temporary implementation
+return mockResponse();
+```
 
 ## Getting Started
 
-First, run the development server:
+1. Clone the repository
+2. Install dependencies for backend and frontend
+3. Set up environment variables
+4. Start the development servers
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Next Steps
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-
-## Clerk Authentication Setup
-
-This project uses [Clerk](https://clerk.com/) for authentication.
-
-### 1. Create a Clerk Account
-- Go to https://clerk.com/ and sign up.
-
-### 2. Create a Clerk Application
-- In the Clerk dashboard, create a new application.
-
-### 3. Get Your API Keys
-- Copy your **Publishable Key** and **Secret Key** from the Clerk dashboard.
-
-### 4. Configure Environment Variables
-Create a `.env.local` file in the project root with:
-```
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_publishable_key
-CLERK_SECRET_KEY=your_secret_key
-NEXT_PUBLIC_CLERK_SIGN_IN_URL=/signin
-NEXT_PUBLIC_CLERK_SIGN_UP_URL=/signup
-NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/dashboard
-NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/dashboard
-```
-
-### 5. Start the Development Server
-```bash
-bun run dev
-```
-
-### 6. Usage
-- Visit `/signin` or `/signup` to authenticate.
-- Only signed-in users can access `/dashboard` and related pages.
-
----
+1. Replace placeholders with actual service integrations
+2. Configure environment variables for production
+3. Deploy the application
+4. Set up monitoring and analytics
