@@ -43,6 +43,8 @@ exports.authMiddleware = authMiddleware;
 const generateMockToken = (userId, email, role = 'user') => {
     // PLACEHOLDER: This is only for development purposes
     // INTEGRATION: In production, use your actual authentication system
-    return jsonwebtoken_1.default.sign({ sub: userId, email, role }, config_1.config.jwt.secret, { expiresIn: config_1.config.jwt.expiresIn });
+    const payload = { sub: userId, email, role };
+    const secret = config_1.config.jwt.secret;
+    return jsonwebtoken_1.default.sign(payload, secret, { expiresIn: '1d' });
 };
 exports.generateMockToken = generateMockToken;

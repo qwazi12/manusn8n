@@ -27,6 +27,13 @@ class CacheService {
 
   private async initializeRedisClient() {
     try {
+      // Check if Redis URL is configured and not a placeholder
+      if (!config.redis.url || config.redis.url === 'redis://localhost:6379') {
+        logger.info('Redis not configured or using default localhost. Using local cache only.');
+        this.connected = false;
+        return;
+      }
+
       // PLACEHOLDER: Replace with your actual Redis connection
       // INTEGRATION: Set up Redis locally or use a cloud provider
       this.client = createClient({
@@ -34,7 +41,7 @@ class CacheService {
       });
 
       this.client.on('error', (err: any) => {
-        logger.error('Redis client error', { error: err });
+        logger.warn('Redis client error, falling back to local cache', { error: err.message });
         this.connected = false;
       });
 
@@ -43,10 +50,16 @@ class CacheService {
         this.connected = true;
       });
 
+      // Set a timeout for Redis connection
+      const connectionTimeout = setTimeout(() => {
+        logger.warn('Redis connection timeout, falling back to local cache');
+        this.connected = false;
+      }, 5000);
+
       await this.client.connect();
+      clearTimeout(connectionTimeout);
     } catch (error) {
-      logger.error('Failed to initialize Redis client', { error });
-      logger.info('Falling back to local cache');
+      logger.warn('Failed to initialize Redis client, falling back to local cache', { error: error instanceof Error ? error.message : error });
       this.connected = false;
     }
   }

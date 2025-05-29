@@ -1,6 +1,6 @@
 // src/middleware/authMiddleware.ts
 import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
+import jwt, { SignOptions } from 'jsonwebtoken';
 import { config } from '../config/config';
 import { logger } from '../utils/logger';
 
@@ -59,9 +59,8 @@ export const authMiddleware = async (
 export const generateMockToken = (userId: string, email: string, role: string = 'user'): string => {
   // PLACEHOLDER: This is only for development purposes
   // INTEGRATION: In production, use your actual authentication system
-  return jwt.sign(
-    { sub: userId, email, role },
-    config.jwt.secret,
-    { expiresIn: config.jwt.expiresIn }
-  );
+  const payload = { sub: userId, email, role };
+  const secret = config.jwt.secret;
+  
+  return jwt.sign(payload, secret, { expiresIn: '1d' });
 };

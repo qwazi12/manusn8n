@@ -30,9 +30,6 @@ const nextConfig = {
         pathname: "/**",
       },
     ],
-  },
-  experimental: {
-    allowedDevOrigins: ['*.ngrok-free.app']
   }
 };
 
