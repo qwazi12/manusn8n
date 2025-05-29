@@ -63,6 +63,29 @@ class SupabaseService {
     }
   }
 
+  async updateUserPlan(userId: string, planData: {
+    plan: string;
+    credits: number;
+    trial_start?: string | null;
+    plan_expiry?: string | null;
+    subscription_id?: string | null;
+  }) {
+    try {
+      const { data, error } = await this.client
+        .from('users')
+        .update(planData)
+        .eq('id', userId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      logger.error('Error updating user plan', { error, userId, planData });
+      throw error;
+    }
+  }
+
   // Workflow operations
   async saveWorkflow(workflowData: any) {
     try {

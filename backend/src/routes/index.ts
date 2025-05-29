@@ -6,6 +6,7 @@ import userRoutes from './user.routes';
 import authRoutes from './auth.routes';
 import batchRoutes from './batch.routes';
 import templateRoutes from './template.routes';
+import pricingRoutes from './pricing.routes';
 import { aiService } from '../services/ai/aiService';
 
 const router = Router();
@@ -17,6 +18,7 @@ router.use('/users', userRoutes);
 router.use('/auth', authRoutes);
 router.use('/batch', batchRoutes);
 router.use('/templates', templateRoutes);
+router.use('/pricing', pricingRoutes);
 
 // Health check endpoint
 router.get('/health', (req, res) => {

@@ -2,6 +2,58 @@
 import { supabaseService } from '../database/supabaseService';
 import { logger } from '../../utils/logger';
 
+// NodePilot Pricing Plans
+export interface PricingPlan {
+  id: 'free' | 'pro' | 'payg';
+  name: string;
+  price: number;
+  credits: number;
+  features: string[];
+  duration?: 'trial' | 'monthly' | 'per_purchase';
+}
+
+export const PRICING_PLANS: Record<string, PricingPlan> = {
+  free: {
+    id: 'free',
+    name: 'Free Plan',
+    price: 0,
+    credits: 75, // 50-100 credits (introductory)
+    features: [
+      '7-day trial, then upgrade required',
+      'Natural language → n8n JSON workflow generation',
+      'Step-by-step guide with each workflow',
+      'Basic support'
+    ],
+    duration: 'trial'
+  },
+  pro: {
+    id: 'pro',
+    name: 'Pro Plan',
+    price: 17.99,
+    credits: 500,
+    features: [
+      'All Free features',
+      'Priority AI processing',
+      'Upload files/images for smarter prompts',
+      'Retain workflows',
+      'Multi-turn refinement chat'
+    ],
+    duration: 'monthly'
+  },
+  payg: {
+    id: 'payg',
+    name: 'Pay-As-You-Go',
+    price: 5,
+    credits: 100,
+    features: [
+      'No subscription required',
+      'All standard generation features',
+      'Credits expire after 30 days'
+    ],
+    duration: 'per_purchase'
+  }
+};
+
 // Types for credit operations
 export interface CreditTransaction {
   userId: string;
@@ -13,9 +65,12 @@ export interface CreditTransaction {
 
 export interface UserCreditInfo {
   credits: number;
-  plan: 'free' | 'pro' | 'enterprise';
+  plan: 'free' | 'pro' | 'payg';
   trialStart?: string;
   subscriptionId?: string;
+  planExpiry?: string;
+  isTrialActive?: boolean;
+  isSubscriptionActive?: boolean;
 }
 
 class CreditService {
@@ -43,11 +98,19 @@ class CreditService {
         throw new Error('User not found');
       }
       
+      const trialStart = userData.trial_start;
+      const isTrialActive = trialStart ? !this.hasTrialExpired(trialStart) : false;
+      const planExpiry = userData.plan_expiry;
+      const isSubscriptionActive = planExpiry ? new Date(planExpiry) > new Date() : false;
+      
       return {
         credits: userData.credits || 0,
         plan: userData.plan || 'free',
-        trialStart: userData.trial_start,
-        subscriptionId: userData.subscription_id
+        trialStart,
+        subscriptionId: userData.subscription_id,
+        planExpiry,
+        isTrialActive,
+        isSubscriptionActive
       };
     } catch (error) {
       logger.error('Error getting user credits', { error, userId });
@@ -60,14 +123,29 @@ class CreditService {
    */
   async hasSufficientCredits(userId: string, required: number = 1): Promise<boolean> {
     try {
-      const { credits, plan, trialStart } = await this.getUserCredits(userId);
+      const { credits, plan, isTrialActive, isSubscriptionActive } = await this.getUserCredits(userId);
       
-      // Free trial users don't need credits during trial period
-      if (plan === 'free' && trialStart) {
-        const trialExpired = this.hasTrialExpired(trialStart);
-        if (!trialExpired) return true;
+      // Free trial users can use credits during trial period
+      if (plan === 'free' && isTrialActive) {
+        return credits >= required;
       }
       
+      // Pro plan users with active subscription
+      if (plan === 'pro' && isSubscriptionActive) {
+        return credits >= required;
+      }
+      
+      // Pay-as-you-go users (credits don't expire for 30 days)
+      if (plan === 'payg') {
+        return credits >= required;
+      }
+      
+      // Free trial expired - no credits allowed
+      if (plan === 'free' && !isTrialActive) {
+        return false;
+      }
+      
+      // Default: check if user has enough credits
       return credits >= required;
     } catch (error) {
       logger.error('Error checking sufficient credits', { error, userId });
@@ -149,6 +227,122 @@ class CreditService {
     } catch (error) {
       logger.error('Error getting credit history', { error, userId });
       throw error;
+    }
+  }
+
+  /**
+   * Initialize new user with free trial
+   */
+  async initializeNewUser(userId: string): Promise<UserCreditInfo> {
+    try {
+      const freePlan = PRICING_PLANS.free;
+      const trialStart = new Date().toISOString();
+      
+      // Set user to free plan with trial credits
+      await supabaseService.updateUserPlan(userId, {
+        plan: 'free',
+        credits: freePlan.credits,
+        trial_start: trialStart,
+        plan_expiry: null,
+        subscription_id: null
+      });
+      
+      // Record trial initialization
+      await this.processTransaction({
+        userId,
+        amount: freePlan.credits,
+        action: 'trial',
+        metadata: { plan: 'free', trial_start: trialStart }
+      });
+      
+      return await this.getUserCredits(userId);
+    } catch (error) {
+      logger.error('Error initializing new user', { error, userId });
+      throw error;
+    }
+  }
+
+  /**
+   * Upgrade user to Pro plan
+   */
+  async upgradeToProPlan(userId: string, subscriptionId: string): Promise<UserCreditInfo> {
+    try {
+      const proPlan = PRICING_PLANS.pro;
+      const planExpiry = new Date();
+      planExpiry.setMonth(planExpiry.getMonth() + 1); // 1 month from now
+      
+      await supabaseService.updateUserPlan(userId, {
+        plan: 'pro',
+        credits: proPlan.credits,
+        subscription_id: subscriptionId,
+        plan_expiry: planExpiry.toISOString(),
+        trial_start: null
+      });
+      
+      // Record subscription
+      await this.processTransaction({
+        userId,
+        amount: proPlan.credits,
+        action: 'subscription',
+        metadata: { plan: 'pro', subscription_id: subscriptionId }
+      });
+      
+      return await this.getUserCredits(userId);
+    } catch (error) {
+      logger.error('Error upgrading to pro plan', { error, userId });
+      throw error;
+    }
+  }
+
+  /**
+   * Purchase PAYG credits
+   */
+  async purchasePaygCredits(userId: string, purchaseId: string): Promise<UserCreditInfo> {
+    try {
+      const paygPlan = PRICING_PLANS.payg;
+      
+      // Add credits to existing balance
+      const currentCredits = await this.getUserCredits(userId);
+      const newCredits = currentCredits.credits + paygPlan.credits;
+      
+      await supabaseService.updateUserCredits(userId, newCredits);
+      
+      // Record purchase
+      await this.processTransaction({
+        userId,
+        amount: paygPlan.credits,
+        action: 'purchase',
+        metadata: { plan: 'payg', purchase_id: purchaseId, expires_in_days: 30 }
+      });
+      
+      return await this.getUserCredits(userId);
+    } catch (error) {
+      logger.error('Error purchasing PAYG credits', { error, userId });
+      throw error;
+    }
+  }
+
+  /**
+   * Get available pricing plans
+   */
+  getPricingPlans(): Record<string, PricingPlan> {
+    return PRICING_PLANS;
+  }
+
+  /**
+   * Check if user needs to upgrade (trial expired)
+   */
+  async needsUpgrade(userId: string): Promise<boolean> {
+    try {
+      const { plan, isTrialActive, isSubscriptionActive } = await this.getUserCredits(userId);
+      
+      if (plan === 'free' && !isTrialActive) return true;
+      if (plan === 'pro' && !isSubscriptionActive) return true;
+      
+      return false;
+    } catch (error) {
+      logger.error('Error checking upgrade status', { error, userId });
+      return true; // Default to requiring upgrade on error
     }
   }
 }

@@ -23,35 +23,23 @@ export const authMiddleware = async (
   next: NextFunction
 ) => {
   try {
-    // Get token from Authorization header
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ error: 'Unauthorized - No token provided' });
+    const token = req.header('Authorization')?.replace('Bearer ', '');
+    
+    if (!token) {
+      return res.status(401).json({ error: 'Access denied. No token provided.' });
     }
 
-    const token = authHeader.split(' ')[1];
-
-    // PLACEHOLDER: Replace with your actual JWT verification
-    // INTEGRATION: This should be integrated with your Clerk authentication
-    try {
-      // Verify token
-      const decoded = jwt.verify(token, config.jwt.secret) as any;
-      
-      // Set user in request object
-      req.user = {
-        id: decoded.sub,
-        email: decoded.email,
-        role: decoded.role || 'user'
-      };
-      
-      next();
-    } catch (error) {
-      logger.error('Invalid token', { error });
-      return res.status(401).json({ error: 'Unauthorized - Invalid token' });
-    }
+    const decoded = jwt.verify(token, config.jwt.secret) as any;
+    req.user = {
+      id: decoded.sub,
+      email: decoded.email,
+      role: decoded.role || 'user'
+    };
+    
+    next();
   } catch (error) {
-    logger.error('Auth middleware error', { error });
-    return res.status(500).json({ error: 'Internal server error' });
+    console.error('Invalid token', error);
+    res.status(401).json({ error: 'Invalid token' });
   }
 };
 
@@ -61,6 +49,7 @@ export const generateMockToken = (userId: string, email: string, role: string = 
   // INTEGRATION: In production, use your actual authentication system
   const payload = { sub: userId, email, role };
   const secret = config.jwt.secret;
+  const options: SignOptions = { expiresIn: '1d' };
   
-  return jwt.sign(payload, secret, { expiresIn: '1d' });
+  return jwt.sign(payload, secret, options);
 };
