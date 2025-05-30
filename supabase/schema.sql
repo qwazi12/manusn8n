@@ -7,14 +7,15 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- Users table
 CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    clerk_id VARCHAR(255) UNIQUE,
     email VARCHAR(255) UNIQUE NOT NULL,
     username VARCHAR(100) UNIQUE,
     first_name VARCHAR(100),
     last_name VARCHAR(100),
     avatar_url TEXT,
-    plan_type VARCHAR(20) DEFAULT 'free' CHECK (plan_type IN ('free', 'pro', 'payg')),
-    credits_remaining INTEGER DEFAULT 75,
-    total_credits_purchased INTEGER DEFAULT 75,
+    plan VARCHAR(20) DEFAULT 'free_user' CHECK (plan IN ('free_user', 'pro', 'payg')),
+    credits INTEGER DEFAULT 100,
+    total_credits_purchased INTEGER DEFAULT 100,
     stripe_customer_id VARCHAR(255),
     subscription_status VARCHAR(20) DEFAULT 'inactive' CHECK (subscription_status IN ('active', 'inactive', 'canceled', 'past_due')),
     subscription_id VARCHAR(255),

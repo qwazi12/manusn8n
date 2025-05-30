@@ -2,6 +2,7 @@ import { Webhook } from 'svix';
 import { NextResponse } from 'next/server';
 import { WebhookEvent } from '@clerk/nextjs/server';
 import { clerkClient } from '@clerk/clerk-sdk-node';
+import { createClient } from '@supabase/supabase-js';
 
 // Helper function to generate a UUID v4
 function uuidv4() {
@@ -58,10 +59,16 @@ export async function POST(req: Request) {
       return new NextResponse('Error verifying webhook', { status: 400 });
     }
 
+    // Create Supabase admin client
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
     // Handle user.created event
     if (event.type === 'user.created') {
       console.log('Processing user.created event:', event.data);
-      const { id: clerkUserId, email_addresses, created_at } = event.data;
+      const { id: clerkUserId, email_addresses, first_name, last_name, created_at } = event.data;
       const primaryEmail = email_addresses[0]?.email_address;
 
       if (!primaryEmail) {
@@ -69,28 +76,26 @@ export async function POST(req: Request) {
         return new NextResponse('No primary email found', { status: 400 });
       }
 
-      // Call Supabase Edge Function to create user
-      const response = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/create-user`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`
-        },
-        body: JSON.stringify({
+      // Insert user directly into Supabase
+      const { data: newUser, error } = await supabase
+        .from('users')
+        .insert({
+          clerk_id: clerkUserId,
           email: primaryEmail,
+          first_name: first_name || null,
+          last_name: last_name || null,
           plan: 'free_user',
           credits: 100,
           created_at: new Date(created_at).toISOString()
         })
-      });
+        .select()
+        .single();
 
-      if (!response.ok) {
-        const error = await response.json();
+      if (error) {
         console.error('Error creating Supabase user:', error);
         return new NextResponse('Failed to create user in Supabase', { status: 500 });
       }
 
-      const { user: newUser } = await response.json();
       console.log('Created Supabase user:', newUser);
 
       // Store the Supabase user ID in Clerk's public metadata
@@ -117,35 +122,19 @@ export async function POST(req: Request) {
       console.log('Processing user.deleted event:', event.data);
       const clerkUserId = event.data.id;
       
-      // Get the user to find their Supabase ID
-      try {
-        const user = await clerkClient.users.getUser(clerkUserId);
-        const supabaseUserId = user.publicMetadata.supabaseUserId as string;
-        
-        if (supabaseUserId) {
-          // Call Supabase Edge Function to delete user
-          const response = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/delete-user`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`
-            },
-            body: JSON.stringify({ id: supabaseUserId })
-          });
+      // Delete user from Supabase using clerk_id
+      const { error } = await supabase
+        .from('users')
+        .delete()
+        .eq('clerk_id', clerkUserId);
 
-          if (!response.ok) {
-            const error = await response.json();
-            console.error('Error deleting Supabase user:', error);
-            return new NextResponse('Failed to delete user from Supabase', { status: 500 });
-          }
-
-          console.log('Deleted Supabase user:', supabaseUserId);
-        }
-      } catch (error) {
-        console.error('Error processing user deletion:', error);
+      if (error) {
+        console.error('Error deleting Supabase user:', error);
+        return new NextResponse('Failed to delete user from Supabase', { status: 500 });
       }
 
-      return new NextResponse(JSON.stringify({ message: 'User deleted successfully' }));
+      console.log('Deleted Supabase user with clerk_id:', clerkUserId);
+      return NextResponse.json({ message: 'User deleted successfully' });
     }
 
     console.log('Processed webhook event:', event.type);
