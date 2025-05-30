@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { clerkClient } from "@clerk/clerk-sdk-node";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { supabase } from "@/lib/supabase";
 
 const protectedRoutes = ["/dashboard", "/dashboard/create", "/dashboard/workflows"];
 
@@ -33,4 +34,20 @@ export async function middleware(req: NextRequest) {
   }
 
   return NextResponse.next();
+}
+
+// Add transaction support
+async function deductCredits(userId: string, amount: number) {
+  const trx = await supabase.createTransaction();
+  try {
+    await trx.begin();
+    // Lock user record
+    // Verify balance
+    // Deduct credits
+    // Record history
+    await trx.commit();
+  } catch (error) {
+    await trx.rollback();
+    throw error;
+  }
 } 

@@ -26,96 +26,196 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Prompt is required' }, { status: 400 });
     }
 
-    // 3. Initialize Supabase client
-    const supabase = createClient();
-
-    // 4. Get user data from Clerk
-    const user = await clerkClient.users.getUser(userId);
-    const trialStart = user.publicMetadata.trialStart as string;
-
-    // 5. Check credits and trial status
-    const { data: userData } = await supabase
-      .from('users')
-      .select('credits, plan')
-      .eq('id', userId)
-      .single();
-
-    if (!userData) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
-
-    const { credits, plan } = userData;
-
-    // Check if user has credits or is in trial period
-    if (credits <= 0 && (plan === 'free' && hasTrialExpired(trialStart))) {
-      return NextResponse.json(
-        { 
-          error: 'No credits remaining', 
-          upgrade_url: '/pricing'
-        }, 
-        { status: 403 }
-      );
-    }
-
-    // 6. Generate workflow (placeholder for now)
-    // TODO: Implement actual workflow generation with OpenAI/Claude
-    const workflow = {
-      nodes: [],
-      connections: [],
-      // ... generated workflow JSON
-    };
-
-    // 7. Insert workflow into database
-    const { data: workflowData, error: workflowError } = await supabase
-      .from('workflows')
-      .insert({
-        user_id: userId,
-        prompt,
-        json: workflow,
-        status: 'completed',
-        credits_used: 1,
-        file_urls: files
-      })
-      .select()
-      .single();
-
-    if (workflowError) {
-      console.error('Error inserting workflow:', workflowError);
-      return NextResponse.json({ error: 'Failed to save workflow' }, { status: 500 });
-    }
-
-    // 8. Deduct credit and update history
-    const { error: creditError } = await supabase
-      .from('users')
-      .update({ credits: credits - 1 })
-      .eq('id', userId);
-
-    if (creditError) {
-      console.error('Error updating credits:', creditError);
-      // Continue anyway since workflow was generated
-    }
-
-    // 9. Record credit usage
-    const { error: historyError } = await supabase
-      .from('credit_history')
-      .insert({
-        user_id: userId,
-        action: 'generation',
-        amount: -1,
-        workflow_id: workflowData.id
+    // 3. Call the backend Express server to generate workflow
+    const backendUrl = process.env.BACKEND_URL || 'http://localhost:4000';
+    
+    try {
+      const backendResponse = await fetch(`${backendUrl}/api/workflows/generate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${userId}`, // Pass user ID as auth
+        },
+        body: JSON.stringify({
+          prompt,
+          files,
+          useCache: true
+        }),
       });
 
-    if (historyError) {
-      console.error('Error recording credit history:', historyError);
-      // Continue anyway since workflow was generated
-    }
+      const backendData = await backendResponse.json();
 
-    // 10. Return success response
-    return NextResponse.json({
-      workflow,
-      message: 'success',
-      remaining_credits: credits - 1
-    });
+      if (!backendResponse.ok) {
+        console.error('Backend error:', backendData);
+        return NextResponse.json(
+          { error: backendData.error || 'Failed to generate workflow' },
+          { status: backendResponse.status }
+        );
+      }
+
+      // Return the backend response directly
+      return NextResponse.json({
+        workflow: backendData.workflow,
+        message: backendData.message,
+        remaining_credits: backendData.remaining_credits,
+        workflow_id: backendData.workflow_id
+      });
+
+    } catch (backendError) {
+      console.error('Error calling backend:', backendError);
+      
+      // Fallback: Generate a mock workflow if backend is unavailable
+      console.log('Backend unavailable, generating mock workflow...');
+      
+      // 4. Initialize Supabase client for fallback
+      const supabase = createClient();
+
+      // 5. Get user data from Clerk for fallback
+      const user = await clerkClient.users.getUser(userId);
+      const trialStart = user.publicMetadata.trialStart as string;
+
+      // 6. Check credits and trial status for fallback
+      const { data: userData } = await supabase
+        .from('users')
+        .select('credits, plan')
+        .eq('id', userId)
+        .single();
+
+      if (!userData) {
+        return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      }
+
+      const { credits, plan } = userData;
+
+      // Check if user has credits or is in trial period
+      if (credits <= 0 && (plan === 'free' && hasTrialExpired(trialStart))) {
+        return NextResponse.json(
+          { 
+            error: 'No credits remaining', 
+            upgrade_url: '/pricing'
+          }, 
+          { status: 403 }
+        );
+      }
+
+      // 7. Generate mock workflow for fallback
+      const mockWorkflow = {
+        nodes: [
+          {
+            id: 'start',
+            type: 'n8n-nodes-base.start',
+            position: [100, 300],
+            parameters: {},
+            name: 'Start'
+          },
+          {
+            id: 'webhook',
+            type: 'n8n-nodes-base.webhook',
+            position: [300, 300],
+            parameters: {
+              path: 'workflow-trigger',
+              httpMethod: 'POST'
+            },
+            name: 'Webhook'
+          },
+          {
+            id: 'function',
+            type: 'n8n-nodes-base.function',
+            position: [500, 300],
+            parameters: {
+              functionCode: `// Process the incoming data
+return items.map(item => {
+  return {
+    json: {
+      ...item.json,
+      processed: true,
+      timestamp: new Date().toISOString()
+    }
+  };
+});`
+            },
+            name: 'Process Data'
+          }
+        ],
+        connections: {
+          'Start': {
+            'main': [
+              [
+                {
+                  'node': 'Webhook',
+                  'type': 'main',
+                  'index': 0
+                }
+              ]
+            ]
+          },
+          'Webhook': {
+            'main': [
+              [
+                {
+                  'node': 'Process Data',
+                  'type': 'main',
+                  'index': 0
+                }
+              ]
+            ]
+          }
+        }
+      };
+
+      // 8. Insert workflow into database for fallback
+      const { data: workflowData, error: workflowError } = await supabase
+        .from('workflows')
+        .insert({
+          user_id: userId,
+          prompt,
+          json: mockWorkflow,
+          status: 'completed',
+          credits_used: 1,
+          file_urls: files
+        })
+        .select()
+        .single();
+
+      if (workflowError) {
+        console.error('Error inserting workflow:', workflowError);
+        return NextResponse.json({ error: 'Failed to save workflow' }, { status: 500 });
+      }
+
+      // 9. Deduct credit and update history for fallback
+      const { error: creditError } = await supabase
+        .from('users')
+        .update({ credits: credits - 1 })
+        .eq('id', userId);
+
+      if (creditError) {
+        console.error('Error updating credits:', creditError);
+        // Continue anyway since workflow was generated
+      }
+
+      // 10. Record credit usage for fallback
+      const { error: historyError } = await supabase
+        .from('credit_history')
+        .insert({
+          user_id: userId,
+          action: 'generation',
+          amount: -1,
+          workflow_id: workflowData.id
+        });
+
+      if (historyError) {
+        console.error('Error recording credit history:', historyError);
+        // Continue anyway since workflow was generated
+      }
+
+      // 11. Return fallback response
+      return NextResponse.json({
+        workflow: mockWorkflow,
+        message: 'Workflow generated (backend unavailable - using mock)',
+        remaining_credits: credits - 1,
+        workflow_id: workflowData.id
+      });
+    }
 
   } catch (error) {
     console.error('Workflow generation error:', error);

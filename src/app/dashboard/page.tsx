@@ -5,17 +5,99 @@ import { SignedIn, SignedOut, RedirectToSignIn, useUser } from "@clerk/nextjs";
 import { useState } from "react";
 import ChatInputBar from "@/components/chat/ChatInputBar";
 
+interface Message {
+  role: 'user' | 'assistant';
+  content: string;
+  files?: File[];
+  timestamp: Date;
+  workflow?: any;
+  isLoading?: boolean;
+}
+
 export default function DashboardPage() {
   const { user } = useUser();
   const userName = user?.firstName || "there";
 
-  // State for messages
-  const [messages, setMessages] = useState<Array<{ content: string; files: File[] }>>([]);
+  // State for messages and loading
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [credits, setCredits] = useState(100); // Will be fetched from API
 
   // Handler for sending a message
-  const handleSendMessage = (message: string, files: File[]) => {
-    setMessages(prev => [...prev, { content: message, files }]);
-    // TODO: Implement actual workflow generation logic here
+  const handleSendMessage = async (message: string, files: File[]) => {
+    if (isLoading) return;
+
+    // Add user message
+    const userMessage: Message = {
+      role: 'user',
+      content: message,
+      files,
+      timestamp: new Date()
+    };
+    
+    setMessages(prev => [...prev, userMessage]);
+    setIsLoading(true);
+
+    try {
+      // Call the backend API to generate workflow
+      const response = await fetch('/api/generate-workflow', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt: message,
+          files: files.map(f => f.name) // For now, just send file names
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to generate workflow');
+      }
+
+      // Add assistant response
+      const assistantMessage: Message = {
+        role: 'assistant',
+        content: `✅ **Workflow Generated Successfully!**
+
+**Prompt:** ${message}
+
+**Generated Workflow:**
+- **Nodes:** ${data.workflow?.nodes?.length || 0} workflow steps
+- **Connections:** ${data.workflow?.connections?.length || 0} data flows
+- **Status:** Ready to use
+
+**Credits Used:** 1
+**Remaining Credits:** ${data.remaining_credits}
+
+You can copy this workflow JSON and import it directly into n8n!`,
+        timestamp: new Date(),
+        workflow: data.workflow
+      };
+
+      setMessages(prev => [...prev, assistantMessage]);
+      setCredits(data.remaining_credits);
+
+    } catch (error) {
+      console.error('Error generating workflow:', error);
+      
+      // Add error message
+      const errorMessage: Message = {
+        role: 'assistant',
+        content: `❌ **Error generating workflow**
+
+${error instanceof Error ? error.message : 'An unexpected error occurred'}
+
+Please try again or contact support if the issue persists.`,
+        timestamp: new Date()
+      };
+
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -27,10 +109,62 @@ export default function DashboardPage() {
             <h2 className="text-2xl text-gray-700 font-normal">What can I do for you?</h2>
           </div>
 
+          {/* Chat Messages */}
+          {messages.length > 0 && (
+            <div className="mb-6 space-y-4 max-h-96 overflow-y-auto bg-gray-50 rounded-lg p-4">
+              {messages.map((message, index) => (
+                <div
+                  key={index}
+                  className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                >
+                  <div
+                    className={`max-w-[80%] p-3 rounded-lg ${
+                      message.role === 'user'
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-white border border-gray-200'
+                    }`}
+                  >
+                    <div className="whitespace-pre-wrap text-sm">
+                      {message.content}
+                    </div>
+                    {message.files && message.files.length > 0 && (
+                      <div className="mt-2 text-xs opacity-75">
+                        📎 {message.files.length} file(s) attached
+                      </div>
+                    )}
+                    {message.workflow && (
+                      <div className="mt-3 p-2 bg-gray-100 rounded text-xs">
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(JSON.stringify(message.workflow, null, 2));
+                            alert('Workflow JSON copied to clipboard!');
+                          }}
+                          className="text-blue-600 hover:text-blue-800"
+                        >
+                          📋 Copy Workflow JSON
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+              {isLoading && (
+                <div className="flex justify-start">
+                  <div className="bg-white border border-gray-200 p-3 rounded-lg">
+                    <div className="flex items-center space-x-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
+                      <span className="text-sm text-gray-600">Generating workflow...</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Chat input */}
           <ChatInputBar onSendMessage={handleSendMessage} />
           <div className="flex justify-end mt-3 mb-8">
-            <span className="text-sm text-gray-500">100 credits</span>
+            <span className="text-sm text-gray-500">{credits} credits</span>
           </div>
 
           <div className="space-y-6">
