@@ -77,15 +77,15 @@ export async function POST(request: Request) {
       // 6. Check credits and trial status for fallback
       const { data: userData } = await supabase
         .from('users')
-        .select('credits, plan')
-        .eq('id', userId)
+        .select('id, credits, plan')
+        .eq('clerk_id', userId)
         .single();
 
       if (!userData) {
         return NextResponse.json({ error: 'User not found' }, { status: 404 });
       }
 
-      const { credits, plan } = userData;
+      const { id: supabaseUserId, credits, plan } = userData;
 
       // Check if user has credits or is in trial period
       if (credits <= 0 && (plan === 'free' && hasTrialExpired(trialStart))) {
@@ -167,12 +167,12 @@ return items.map(item => {
       const { data: workflowData, error: workflowError } = await supabase
         .from('workflows')
         .insert({
-          user_id: userId,
+          user_id: supabaseUserId,
+          title: prompt.substring(0, 100), // Use first 100 chars as title
           prompt,
-          json: mockWorkflow,
+          workflow_json: mockWorkflow,
           status: 'completed',
-          credits_used: 1,
-          file_urls: files
+          credits_used: 1
         })
         .select()
         .single();
@@ -186,7 +186,7 @@ return items.map(item => {
       const { error: creditError } = await supabase
         .from('users')
         .update({ credits: credits - 1 })
-        .eq('id', userId);
+        .eq('id', supabaseUserId);
 
       if (creditError) {
         console.error('Error updating credits:', creditError);
@@ -197,9 +197,12 @@ return items.map(item => {
       const { error: historyError } = await supabase
         .from('credit_history')
         .insert({
-          user_id: userId,
-          action: 'generation',
-          amount: -1,
+          user_id: supabaseUserId,
+          transaction_type: 'usage',
+          credits_amount: -1,
+          credits_before: credits,
+          credits_after: credits - 1,
+          description: 'Workflow generation',
           workflow_id: workflowData.id
         });
 
