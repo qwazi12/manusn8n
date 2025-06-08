@@ -1,9 +1,11 @@
 "use client";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { SignedIn, SignedOut, RedirectToSignIn, useUser } from "@clerk/nextjs";
+import { SignedIn, SignedOut, RedirectToSignIn, useUser, useAuth } from "@clerk/nextjs";
 import { useState } from "react";
 import ChatInputBar from "@/components/chat/ChatInputBar";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 interface Message {
   role: 'user' | 'assistant';
@@ -16,7 +18,14 @@ interface Message {
 
 export default function DashboardPage() {
   const { user } = useUser();
+  const { has } = useAuth();
   const userName = user?.firstName || "there";
+
+  // Check user's plan and features
+  const hasProPlan = has({ plan: 'pro' });
+  const hasPaygPlan = has({ plan: 'payg' });
+  const hasFileUpload = has({ feature: 'file_upload' });
+  const hasPriorityProcessing = has({ feature: 'priority_processing' });
 
   // State for messages and loading
   const [messages, setMessages] = useState<Message[]>([]);
@@ -107,6 +116,28 @@ Please try again or contact support if the issue persists.`,
           <div className="mb-10 text-center">
             <h1 className="text-4xl font-bold text-gray-900 mb-2">Hello {userName}</h1>
             <h2 className="text-2xl text-gray-700 font-normal">What can I do for you?</h2>
+
+            {/* Plan Status */}
+            <div className="mt-4 flex justify-center">
+              {hasProPlan && (
+                <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-full text-sm font-medium">
+                  ✨ Pro Plan - 500 credits/month
+                </div>
+              )}
+              {hasPaygPlan && (
+                <div className="bg-blue-500 text-white px-4 py-2 rounded-full text-sm font-medium">
+                  💰 Pay-As-You-Go Plan
+                </div>
+              )}
+              {!hasProPlan && !hasPaygPlan && (
+                <div className="bg-gray-500 text-white px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2">
+                  🆓 Free Trial
+                  <Button asChild size="sm" variant="outline" className="ml-2 bg-white text-gray-900 hover:bg-gray-100">
+                    <Link href="/pricing">Upgrade</Link>
+                  </Button>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Chat Messages */}

@@ -39,7 +39,7 @@ export function Header() {
                 <Link href="/#features" onClick={() => setIsOpen(false)}>Features</Link>
               </Button>
               <Button variant="ghost" asChild>
-                <Link href="/#pricing" onClick={() => setIsOpen(false)}>Pricing</Link>
+                <Link href="/pricing" onClick={() => setIsOpen(false)}>Pricing</Link>
               </Button>
               <Button variant="ghost" asChild>
                 <Link href="/#contact" onClick={() => setIsOpen(false)}>Contact</Link>
@@ -49,6 +49,9 @@ export function Header() {
               </Button>
               <Button variant="ghost" asChild>
                 <Link href="/blog" onClick={() => setIsOpen(false)}>Blog</Link>
+              </Button>
+              <Button variant="ghost" asChild>
+                <Link href="/pricing" onClick={() => setIsOpen(false)}>Pricing</Link>
               </Button>
             </div>
             <div className="flex flex-col gap-2">
@@ -77,7 +80,7 @@ export function Header() {
           <Link href="/#features">Features</Link>
         </Button>
         <Button variant="ghost" asChild>
-          <Link href="/#pricing">Pricing</Link>
+          <Link href="/pricing">Pricing</Link>
         </Button>
         <Button variant="ghost" asChild>
           <Link href="/#contact">Contact</Link>
