@@ -6,10 +6,14 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
-import { UserButton, SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
+import { UserButton, SignedIn, SignedOut, SignInButton, useUser } from "@clerk/nextjs";
 
 export function Header() {
   const [isOpen, setIsOpen] = useState(false);
+  const { user, isLoaded } = useUser();
+
+  // Debug logging
+  console.log("Header render - isLoaded:", isLoaded, "user:", user?.id);
 
   return (
     <header className="w-[90%] md:w-[70%] lg:w-[75%] lg:max-w-screen-xl top-5 mx-auto sticky border z-40 rounded-2xl flex justify-between items-center p-2 bg-card shadow-md">
@@ -91,6 +95,11 @@ export function Header() {
       </div>
 
       <div className="hidden lg:flex gap-3 items-center">
+        {/* Debug info */}
+        <div className="text-xs text-gray-500 mr-2">
+          {isLoaded ? (user ? "Signed In" : "Signed Out") : "Loading..."}
+        </div>
+
         <SignedIn>
           <Button variant="default" asChild className="h-10 md:h-[34px]">
             <Link href="/dashboard">Dashboard</Link>
