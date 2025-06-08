@@ -6,6 +6,7 @@ import { useState } from "react";
 import ChatInputBar from "@/components/chat/ChatInputBar";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { PaygCreditPurchase } from "@/components/billing/PaygCreditPurchase";
 
 interface Message {
   role: 'user' | 'assistant';
@@ -26,6 +27,10 @@ export default function DashboardPage() {
   const hasPaygPlan = has({ plan: 'payg' });
   const hasFileUpload = has({ feature: 'file_upload' });
   const hasPriorityProcessing = has({ feature: 'priority_processing' });
+
+  // State for showing credit purchase
+  const [showCreditPurchase, setShowCreditPurchase] = useState(false);
+  const [userCredits, setUserCredits] = useState(100); // This should come from API
 
   // State for messages and loading
   const [messages, setMessages] = useState<Message[]>([]);
@@ -137,8 +142,33 @@ Please try again or contact support if the issue persists.`,
                   </Button>
                 </div>
               )}
+
+              {/* PAYG Credit Purchase Button */}
+              {(hasPaygPlan || (!hasProPlan && !hasPaygPlan)) && (
+                <Button
+                  onClick={() => setShowCreditPurchase(!showCreditPurchase)}
+                  variant="outline"
+                  size="sm"
+                  className="ml-2"
+                >
+                  💰 Buy Credits
+                </Button>
+              )}
             </div>
           </div>
+
+          {/* PAYG Credit Purchase Section */}
+          {showCreditPurchase && (
+            <div className="mb-8">
+              <PaygCreditPurchase
+                currentCredits={userCredits}
+                onPurchaseComplete={(newCredits) => {
+                  setUserCredits(newCredits);
+                  setShowCreditPurchase(false);
+                }}
+              />
+            </div>
+          )}
 
           {/* Chat Messages */}
           {messages.length > 0 && (
