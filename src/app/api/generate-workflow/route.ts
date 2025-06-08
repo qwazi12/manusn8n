@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { createClient } from '@/lib/supabase';
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { clerkClient } from '@clerk/clerk-sdk-node';
 
 // Helper to check if trial has expired
@@ -77,9 +78,16 @@ export async function POST(request: Request) {
 
       // 6. Check credits and trial status for fallback
       console.log('🔍 DEBUG: Looking up user with clerk_id:', userId);
-      const { data: userData, error: userError } = await supabase
+
+      // Use service role key to bypass RLS
+      const supabaseAdmin = createSupabaseClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+      );
+
+      const { data: userData, error: userError } = await supabaseAdmin
         .from('users')
-        .select('id, credits, plan')
+        .select('id, credits, plan, clerk_id, email')
         .eq('clerk_id', userId)
         .single();
 
@@ -96,7 +104,7 @@ export async function POST(request: Request) {
           return NextResponse.json({ error: 'No email found for user' }, { status: 400 });
         }
 
-        const { data: newUser, error: createError } = await supabase
+        const { data: newUser, error: createError } = await supabaseAdmin
           .from('users')
           .insert({
             clerk_id: userId,
@@ -197,7 +205,7 @@ return items.map(item => {
       };
 
       // 8. Insert workflow into database for fallback
-      const { data: workflowData, error: workflowError } = await supabase
+      const { data: workflowData, error: workflowError } = await supabaseAdmin
         .from('workflows')
         .insert({
           user_id: supabaseUserId,
@@ -216,7 +224,7 @@ return items.map(item => {
       }
 
       // 9. Deduct credit and update history for fallback
-      const { error: creditError } = await supabase
+      const { error: creditError } = await supabaseAdmin
         .from('users')
         .update({ credits: credits - 1 })
         .eq('id', supabaseUserId);
@@ -227,7 +235,7 @@ return items.map(item => {
       }
 
       // 10. Record credit usage for fallback
-      const { error: historyError } = await supabase
+      const { error: historyError } = await supabaseAdmin
         .from('credit_history')
         .insert({
           user_id: supabaseUserId,
