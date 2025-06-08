@@ -1,12 +1,9 @@
 "use client";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { SignedIn, SignedOut, RedirectToSignIn, useUser, useAuth } from "@clerk/nextjs";
-import { useState } from "react";
+import { SignedIn, SignedOut, RedirectToSignIn, useUser } from "@clerk/nextjs";
+import { useState, useEffect } from "react";
 import ChatInputBar from "@/components/chat/ChatInputBar";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
-import { PaygCreditPurchase } from "@/components/billing/PaygCreditPurchase";
 import { TrialStatus } from "@/components/trial/TrialStatus";
 
 interface Message {
@@ -20,24 +17,39 @@ interface Message {
 
 export default function DashboardPage() {
   const { user } = useUser();
-  const { has } = useAuth();
   const userName = user?.firstName || "there";
 
-  // Check user's plan and features
-  const hasProPlan = has({ plan: 'pro' });
-  const hasPaygPlan = has({ plan: 'payg' });
-  const hasFileUpload = has({ feature: 'file_upload' });
-  const hasPriorityProcessing = has({ feature: 'priority_processing' });
-
-  // State for showing credit purchase and trial
-  const [showCreditPurchase, setShowCreditPurchase] = useState(false);
-  const [userCredits, setUserCredits] = useState(100); // This should come from API
-  const [trialExpired, setTrialExpired] = useState(false);
+  // State for credits and trial
+  const [userCredits, setUserCredits] = useState<number | null>(null);
+  const [trialStatus, setTrialStatus] = useState<any>(null);
+  const [creditsLoading, setCreditsLoading] = useState(true);
 
   // State for messages and loading
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [credits, setCredits] = useState(100); // Will be fetched from API
+  const [credits, setCredits] = useState<number | null>(null);
+
+  // Fetch user credits on component mount
+  useEffect(() => {
+    fetchUserCredits();
+  }, []);
+
+  const fetchUserCredits = async () => {
+    try {
+      setCreditsLoading(true);
+      const response = await fetch('/api/user-credits');
+      if (response.ok) {
+        const data = await response.json();
+        setUserCredits(data.credits);
+        setCredits(data.credits);
+        setTrialStatus(data.trial_status);
+      }
+    } catch (error) {
+      console.error('Error fetching credits:', error);
+    } finally {
+      setCreditsLoading(false);
+    }
+  }; // Will be fetched from API
 
   // Handler for sending a message
   const handleSendMessage = async (message: string, files: File[]) => {
@@ -95,6 +107,10 @@ You can copy this workflow JSON and import it directly into n8n!`,
 
       setMessages(prev => [...prev, assistantMessage]);
       setCredits(data.remaining_credits);
+      setUserCredits(data.remaining_credits);
+
+      // Refresh trial status after credit usage
+      fetchUserCredits();
 
     } catch (error: any) {
       console.error('Error generating workflow:', error);
@@ -146,56 +162,11 @@ Please try again or contact support if the issue persists.`,
           <div className="mb-10 text-center">
             <h1 className="text-4xl font-bold text-gray-900 mb-2">Hello {userName}</h1>
             <h2 className="text-2xl text-gray-700 font-normal">What can I do for you?</h2>
-
-            {/* Plan Status */}
-            <div className="mt-4 flex justify-center">
-              {hasProPlan && (
-                <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-full text-sm font-medium">
-                  ✨ Pro Plan - 500 credits/month
-                </div>
-              )}
-              {hasPaygPlan && (
-                <div className="bg-blue-500 text-white px-4 py-2 rounded-full text-sm font-medium">
-                  💰 Pay-As-You-Go Plan
-                </div>
-              )}
-              {!hasProPlan && !hasPaygPlan && (
-                <div className="bg-gray-500 text-white px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2">
-                  🆓 Free Trial
-                  <Button asChild size="sm" variant="outline" className="ml-2 bg-white text-gray-900 hover:bg-gray-100">
-                    <Link href="/pricing">Upgrade</Link>
-                  </Button>
-                </div>
-              )}
-
-              {/* PAYG Credit Purchase Button */}
-              {(hasPaygPlan || (!hasProPlan && !hasPaygPlan)) && (
-                <Button
-                  onClick={() => setShowCreditPurchase(!showCreditPurchase)}
-                  variant="outline"
-                  size="sm"
-                  className="ml-2"
-                >
-                  💰 Buy Credits
-                </Button>
-              )}
-            </div>
           </div>
 
-          {/* Trial Status Component */}
-          <TrialStatus onTrialExpired={() => setTrialExpired(true)} />
-
-          {/* PAYG Credit Purchase Section */}
-          {showCreditPurchase && (
-            <div className="mb-8">
-              <PaygCreditPurchase
-                currentCredits={userCredits}
-                onPurchaseComplete={(newCredits) => {
-                  setUserCredits(newCredits);
-                  setShowCreditPurchase(false);
-                }}
-              />
-            </div>
+          {/* Minimal Trial Warnings Only */}
+          {trialStatus?.show_blocking_modal && (
+            <TrialStatus onTrialExpired={() => {}} />
           )}
 
           {/* Chat Messages */}
@@ -253,7 +224,15 @@ Please try again or contact support if the issue persists.`,
           {/* Chat input */}
           <ChatInputBar onSendMessage={handleSendMessage} />
           <div className="flex justify-end mt-3 mb-8">
-            <span className="text-sm text-gray-500">{credits} credits</span>
+            {creditsLoading ? (
+              <div className="animate-pulse">
+                <div className="h-4 bg-gray-200 rounded w-16"></div>
+              </div>
+            ) : (
+              <span className="text-sm text-gray-500 font-medium">
+                {credits !== null ? `${credits} credits` : 'Loading credits...'}
+              </span>
+            )}
           </div>
 
           <div className="space-y-6">

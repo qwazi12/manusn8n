@@ -283,11 +283,12 @@ return items.map(item => {
         // Continue anyway since workflow was generated
       }
 
-      // 11. Return fallback response
+      // 11. Return fallback response with updated credits
+      const updatedCredits = credits - 1;
       return NextResponse.json({
         workflow: mockWorkflow,
         message: 'Workflow generated (backend unavailable - using mock)',
-        remaining_credits: credits - 1,
+        remaining_credits: updatedCredits,
         workflow_id: workflowData.id
       });
     }

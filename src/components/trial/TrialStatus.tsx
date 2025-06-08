@@ -41,13 +41,31 @@ export function TrialStatus({ onTrialExpired }: TrialStatusProps) {
 
   const fetchTrialStatus = async () => {
     try {
-      const response = await fetch('/api/trial-status');
+      const response = await fetch('/api/user-credits');
       if (response.ok) {
         const data = await response.json();
-        setTrialData(data);
-        
+        // Convert to expected format
+        const trialData = {
+          trial_status: data.trial_status.show_blocking_modal ? 'expired' :
+                       data.trial_status.show_grace_warning ? 'grace_period' : 'active',
+          can_use_service: !data.trial_status.show_blocking_modal,
+          upgrade_required: data.trial_status.show_blocking_modal,
+          message: data.trial_status.show_blocking_modal ?
+            'Your free trial has ended. Please upgrade to continue.' :
+            data.trial_status.show_grace_warning ?
+            `Trial ending soon! ${data.trial_status.days_remaining} days and ${data.credits} credits remaining.` :
+            'Trial active',
+          details: {
+            credits_remaining: data.credits,
+            days_remaining: data.trial_status.days_remaining,
+            trial_expired: data.trial_status.trial_expired,
+            credits_exhausted: data.trial_status.credits_exhausted
+          }
+        };
+        setTrialData(trialData);
+
         // Notify parent if trial expired
-        if (data.upgrade_required && onTrialExpired) {
+        if (trialData.upgrade_required && onTrialExpired) {
           onTrialExpired();
         }
       }
@@ -129,49 +147,28 @@ export function TrialStatus({ onTrialExpired }: TrialStatusProps) {
     );
   }
 
-  // Grace period or active trial - show warning
+  // Grace period - show popup warning only
   if (trial_status === 'grace_period') {
     return (
-      <Alert className="mb-6 border-yellow-200 bg-yellow-50">
-        <svg className="w-4 h-4 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-        </svg>
-        <AlertDescription className="text-yellow-800">
-          <div className="flex items-center justify-between">
+      <div className="fixed top-4 right-4 z-50 max-w-sm">
+        <Alert className="border-yellow-200 bg-yellow-50 shadow-lg">
+          <svg className="w-4 h-4 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+          </svg>
+          <AlertDescription className="text-yellow-800">
             <div>
               <strong>Trial ending soon!</strong>
               <p className="text-sm mt-1">{message}</p>
+              <Button asChild size="sm" className="mt-2 w-full">
+                <Link href="/pricing">Upgrade Now</Link>
+              </Button>
             </div>
-            <Button asChild size="sm" className="ml-4">
-              <Link href="/pricing">Upgrade Now</Link>
-            </Button>
-          </div>
-        </AlertDescription>
-      </Alert>
+          </AlertDescription>
+        </Alert>
+      </div>
     );
   }
 
-  // Active trial - show status
-  return (
-    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-            <svg className="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-          <div>
-            <p className="text-sm font-medium text-blue-900">Free Trial Active</p>
-            <p className="text-xs text-blue-700">
-              {details.days_remaining} days and {details.credits_remaining} credits remaining
-            </p>
-          </div>
-        </div>
-        <Button asChild size="sm" variant="outline">
-          <Link href="/pricing">Upgrade</Link>
-        </Button>
-      </div>
-    </div>
-  );
+  // Don't show anything for active trial
+  return null;
 }
