@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
 
 export function HeroSection() {
   return (
@@ -21,9 +22,16 @@ export function HeroSection() {
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 mb-12">
-          <Button asChild size="lg">
-            <Link href="/dashboard">Start Automating</Link>
-          </Button>
+          <SignedIn>
+            <Button asChild size="lg">
+              <Link href="/dashboard">Start Automating</Link>
+            </Button>
+          </SignedIn>
+          <SignedOut>
+            <SignInButton mode="modal">
+              <Button size="lg">Start Automating</Button>
+            </SignInButton>
+          </SignedOut>
           <Button variant="outline" size="lg" asChild>
             <Link href="https://discord.gg/tVb7zvMY" target="_blank" rel="noopener noreferrer">
               Join the Community

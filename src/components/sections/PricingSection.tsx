@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { Check } from "lucide-react";
+import { SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
 
 interface PricingTierProps {
   name: string;
@@ -47,12 +48,19 @@ function PricingTier({
         </ul>
       </CardContent>
       <CardFooter>
-        <Button
-          className="w-full"
-          asChild
-        >
-          <Link href={buttonLink}>{buttonText}</Link>
-        </Button>
+        <SignedIn>
+          <Button
+            className="w-full"
+            asChild
+          >
+            <Link href={buttonLink}>{buttonText}</Link>
+          </Button>
+        </SignedIn>
+        <SignedOut>
+          <SignInButton mode="modal">
+            <Button className="w-full">{buttonText}</Button>
+          </SignInButton>
+        </SignedOut>
       </CardFooter>
     </Card>
   );
