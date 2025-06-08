@@ -19,6 +19,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     const userId = session.userId;
+    console.log('🔍 DEBUG: Clerk User ID:', userId);
 
     // 2. Get request body
     const { prompt, files = [] } = await request.json();
@@ -75,14 +76,46 @@ export async function POST(request: Request) {
       const trialStart = user.publicMetadata.trialStart as string;
 
       // 6. Check credits and trial status for fallback
-      const { data: userData } = await supabase
+      console.log('🔍 DEBUG: Looking up user with clerk_id:', userId);
+      const { data: userData, error: userError } = await supabase
         .from('users')
         .select('id, credits, plan')
         .eq('clerk_id', userId)
         .single();
 
+      console.log('🔍 DEBUG: User lookup result:', { userData, userError });
+
       if (!userData) {
-        return NextResponse.json({ error: 'User not found' }, { status: 404 });
+        console.log('❌ DEBUG: User not found in Supabase, attempting to create...');
+
+        // Try to create the user if they don't exist
+        const user = await clerkClient.users.getUser(userId);
+        const primaryEmail = user.emailAddresses[0]?.emailAddress;
+
+        if (!primaryEmail) {
+          return NextResponse.json({ error: 'No email found for user' }, { status: 400 });
+        }
+
+        const { data: newUser, error: createError } = await supabase
+          .from('users')
+          .insert({
+            clerk_id: userId,
+            email: primaryEmail,
+            first_name: user.firstName || null,
+            last_name: user.lastName || null,
+            plan: 'free_user',
+            credits: 100
+          })
+          .select('id, credits, plan')
+          .single();
+
+        if (createError) {
+          console.log('❌ DEBUG: Failed to create user:', createError);
+          return NextResponse.json({ error: 'Failed to create user' }, { status: 500 });
+        }
+
+        console.log('✅ DEBUG: Created new user:', newUser);
+        userData = newUser;
       }
 
       const { id: supabaseUserId, credits, plan } = userData;
