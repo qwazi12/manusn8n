@@ -87,7 +87,7 @@ export async function POST(request: Request) {
 
       const { data: userData, error: userError } = await supabaseAdmin
         .from('users')
-        .select('id, credits, plan, clerk_id, email')
+        .select('id, credits, plan, clerk_id, email, trial_ends_at, created_at')
         .eq('clerk_id', userId)
         .single();
 
@@ -126,17 +126,48 @@ export async function POST(request: Request) {
         userData = newUser;
       }
 
-      const { id: supabaseUserId, credits, plan } = userData;
+      const { id: supabaseUserId, credits, plan, trial_ends_at } = userData;
 
-      // Check if user has credits or is in trial period
-      if (credits <= 0 && (plan === 'free' && hasTrialExpired(trialStart))) {
-        return NextResponse.json(
-          { 
-            error: 'No credits remaining', 
+      // Check trial status and credits
+      const now = new Date();
+      const trialEndDate = new Date(trial_ends_at);
+      const trialExpired = now > trialEndDate;
+      const creditsExhausted = credits <= 0;
+
+      // Enforce trial limits for free users
+      if (plan === 'free_user') {
+        if (trialExpired && creditsExhausted) {
+          return NextResponse.json({
+            error: 'Free trial expired',
+            message: 'Your free trial has ended and you have no credits remaining. Please upgrade to Pro or purchase credits to continue.',
+            upgrade_required: true,
             upgrade_url: '/pricing'
-          }, 
-          { status: 403 }
-        );
+          }, { status: 402 });
+        } else if (creditsExhausted) {
+          return NextResponse.json({
+            error: 'No credits remaining',
+            message: 'You have no credits left. Please upgrade to Pro or purchase credits to continue.',
+            upgrade_required: true,
+            upgrade_url: '/pricing'
+          }, { status: 402 });
+        } else if (trialExpired) {
+          return NextResponse.json({
+            error: 'Trial period ended',
+            message: 'Your 7-day trial has ended. Please upgrade to Pro or purchase credits to continue.',
+            upgrade_required: true,
+            upgrade_url: '/pricing'
+          }, { status: 402 });
+        }
+      }
+
+      // Check credits for all users
+      if (credits <= 0) {
+        return NextResponse.json({
+          error: 'No credits remaining',
+          message: 'You have no credits left. Please purchase more credits or upgrade to Pro.',
+          upgrade_required: true,
+          upgrade_url: '/pricing'
+        }, { status: 402 });
       }
 
       // 7. Generate mock workflow for fallback

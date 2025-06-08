@@ -7,6 +7,7 @@ import ChatInputBar from "@/components/chat/ChatInputBar";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { PaygCreditPurchase } from "@/components/billing/PaygCreditPurchase";
+import { TrialStatus } from "@/components/trial/TrialStatus";
 
 interface Message {
   role: 'user' | 'assistant';
@@ -28,9 +29,10 @@ export default function DashboardPage() {
   const hasFileUpload = has({ feature: 'file_upload' });
   const hasPriorityProcessing = has({ feature: 'priority_processing' });
 
-  // State for showing credit purchase
+  // State for showing credit purchase and trial
   const [showCreditPurchase, setShowCreditPurchase] = useState(false);
   const [userCredits, setUserCredits] = useState(100); // This should come from API
+  const [trialExpired, setTrialExpired] = useState(false);
 
   // State for messages and loading
   const [messages, setMessages] = useState<Message[]>([]);
@@ -94,10 +96,33 @@ You can copy this workflow JSON and import it directly into n8n!`,
       setMessages(prev => [...prev, assistantMessage]);
       setCredits(data.remaining_credits);
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error generating workflow:', error);
-      
-      // Add error message
+
+      // Handle trial expiration errors
+      if (error.status === 402) {
+        try {
+          const errorData = await error.json();
+          if (errorData.upgrade_required) {
+            setTrialExpired(true);
+            const errorMessage: Message = {
+              role: 'assistant',
+              content: `❌ **${errorData.error}**
+
+${errorData.message}
+
+[Click here to upgrade](/pricing)`,
+              timestamp: new Date()
+            };
+            setMessages(prev => [...prev, errorMessage]);
+            return;
+          }
+        } catch (parseError) {
+          console.error('Error parsing error response:', parseError);
+        }
+      }
+
+      // Add generic error message
       const errorMessage: Message = {
         role: 'assistant',
         content: `❌ **Error generating workflow**
@@ -156,6 +181,9 @@ Please try again or contact support if the issue persists.`,
               )}
             </div>
           </div>
+
+          {/* Trial Status Component */}
+          <TrialStatus onTrialExpired={() => setTrialExpired(true)} />
 
           {/* PAYG Credit Purchase Section */}
           {showCreditPurchase && (
