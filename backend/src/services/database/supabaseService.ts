@@ -12,9 +12,9 @@ class SupabaseService {
     // INTEGRATION: Sign up at https://supabase.com and create a new project
     this.client = createClient(
       config.supabase.url,
-      config.supabase.anonKey
+      config.supabase.serviceRoleKey
     );
-    
+
     logger.info('Supabase client initialized');
   }
 
@@ -42,6 +42,22 @@ class SupabaseService {
       return data;
     } catch (error) {
       logger.error('Error fetching user by ID', { error, userId });
+      throw error;
+    }
+  }
+
+  async getUserByClerkId(clerkId: string) {
+    try {
+      const { data, error } = await this.client
+        .from('users')
+        .select('*')
+        .eq('clerk_id', clerkId)
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      logger.error('Error fetching user by Clerk ID', { error, clerkId });
       throw error;
     }
   }

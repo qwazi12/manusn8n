@@ -170,10 +170,12 @@ class CreditService {
       // Record transaction in history
       await supabaseService.recordCreditUsage({
         user_id: transaction.userId,
-        action: transaction.action,
-        amount: transaction.amount,
-        workflow_id: transaction.workflowId,
-        metadata: transaction.metadata
+        transaction_type: transaction.action === 'generation' ? 'usage' : transaction.action,
+        credits_amount: Math.abs(transaction.amount),
+        credits_before: credits,
+        credits_after: newCredits,
+        description: `${transaction.action} transaction`,
+        workflow_id: transaction.workflowId
       });
       
       // Return updated credit info

@@ -85,11 +85,12 @@ class WorkflowService {
       // Save workflow to database
       const workflowData = {
         user_id: userId,
+        title: `Workflow: ${prompt.substring(0, 50)}...`,
+        description: `Generated workflow for: ${prompt}`,
         prompt,
-        json: generatedWorkflow.workflow,
+        workflow_json: generatedWorkflow.workflow,
         status: generatedWorkflow.status,
-        credits_used: 1,
-        file_urls: files
+        credits_used: 1
       };
       
       const savedWorkflow = await supabaseService.saveWorkflow(workflowData);

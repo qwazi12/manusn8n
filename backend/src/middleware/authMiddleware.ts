@@ -3,6 +3,7 @@ import { Request, Response, NextFunction } from 'express';
 import jwt, { SignOptions } from 'jsonwebtoken';
 import { config } from '../config/config';
 import { logger } from '../utils/logger';
+import { supabaseService } from '../services/database/supabaseService';
 
 // Extend Express Request type to include user
 declare global {
@@ -48,12 +49,24 @@ export const authMiddleware = async (
     } else {
       // It's a direct user ID (for internal API calls from frontend)
       // This is for internal communication between Next.js API routes and Express backend
-      req.user = {
-        id: token,
-        email: `user-${token}@internal.local`, // Mock email for internal calls
-        role: 'user'
-      };
-      logger.info('Internal API call with user ID', { userId: token });
+      // The token is a Clerk ID, we need to convert it to Supabase UUID
+      try {
+        const userData = await supabaseService.getUserByClerkId(token);
+        if (!userData) {
+          logger.error('User not found in Supabase for Clerk ID', { clerkId: token });
+          return res.status(401).json({ error: 'User not found' });
+        }
+
+        req.user = {
+          id: userData.id, // Use Supabase UUID
+          email: userData.email,
+          role: 'user'
+        };
+        logger.info('Internal API call with user ID', { clerkId: token, supabaseId: userData.id });
+      } catch (error) {
+        logger.error('Error looking up user by Clerk ID', { error, clerkId: token });
+        return res.status(401).json({ error: 'User lookup failed' });
+      }
     }
     
     next();
