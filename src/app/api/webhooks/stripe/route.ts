@@ -52,6 +52,10 @@ export async function POST(request: Request) {
         await handleSubscriptionDeleted(event.data.object as Stripe.Subscription, supabaseAdmin);
         break;
 
+      case 'customer.subscription.trial_will_end':
+        await handleTrialWillEnd(event.data.object as Stripe.Subscription, supabaseAdmin);
+        break;
+
       case 'invoice.payment_succeeded':
         await handlePaymentSucceeded(event.data.object as Stripe.Invoice, supabaseAdmin);
         break;
@@ -194,6 +198,20 @@ async function handlePaymentSucceeded(invoice: Stripe.Invoice, supabase: any) {
       })
       .eq('subscription_id', invoice.subscription);
   }
+}
+
+async function handleTrialWillEnd(subscription: Stripe.Subscription, supabase: any) {
+  // Send notification that trial is ending soon
+  // You could implement email notifications here
+  console.log('Trial will end for subscription:', subscription.id);
+
+  // Update user record to indicate trial ending soon
+  await supabase
+    .from('users')
+    .update({
+      trial_ending_soon: true,
+    })
+    .eq('subscription_id', subscription.id);
 }
 
 async function handlePaymentFailed(invoice: Stripe.Invoice, supabase: any) {
