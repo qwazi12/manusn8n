@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
@@ -14,13 +13,6 @@ export function Header() {
   return (
     <header className="w-[90%] md:w-[70%] lg:w-[75%] lg:max-w-screen-xl top-5 mx-auto sticky border z-40 rounded-2xl flex justify-between items-center p-2 bg-card shadow-md">
       <Link href="/" className="font-bold text-lg flex items-center">
-        <Image
-          src="/favicon.png"
-          alt="NodePilot Logo"
-          width={28}
-          height={28}
-          className="mr-2"
-        />
         NodePilot
       </Link>
 

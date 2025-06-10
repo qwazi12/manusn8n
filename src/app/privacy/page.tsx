@@ -13,7 +13,7 @@ export default function PrivacyPolicyPage() {
 
           <p>At <strong>NodePilot</strong>, one of our main priorities is the privacy of our visitors. This Privacy Policy document contains types of information that is collected and recorded by <strong>NodePilot</strong> and how we use it.</p>
 
-          <p>If you have additional questions or require more information about our Privacy Policy, do not hesitate to contact us at <a href="mailto:manalkaff@gmail.com" className="text-primary hover:underline">manalkaff@gmail.com</a>.</p>
+          <p>If you have additional questions or require more information about our Privacy Policy, do not hesitate to contact us at <a href="mailto:nodepilotdev@gmail.com" className="text-primary hover:underline">nodepilotdev@gmail.com</a>.</p>
 
           <p>This Privacy Policy applies only to our online activities and is valid for visitors to our website with regards to the information that they shared and/or collected on <a href="https://nodepilot.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">https://nodepilot.com</a>. This policy is not applicable to any information collected offline or via channels other than this website.</p>
 

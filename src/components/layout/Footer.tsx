@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Image from "next/image";
 
 export function Footer() {
   return (
@@ -8,13 +7,6 @@ export function Footer() {
         <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-6 gap-x-12 gap-y-8">
           <div className="col-span-full xl:col-span-2">
             <Link href="/" className="flex font-bold items-center">
-              <Image
-                src="/favicon.png"
-                alt="NodePilot Logo"
-                width={28}
-                height={28}
-                className="mr-2"
-              />
               <h3 className="text-2xl">NodePilot</h3>
             </Link>
           </div>
@@ -61,12 +53,12 @@ export function Footer() {
             <h3 className="font-bold text-lg">Socials</h3>
             <div>
               <Link
-                href="https://discord.gg/tVb7zvMY"
+                href="https://discord.gg/VNHHPQap"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-muted-foreground hover:text-foreground"
               >
-                Discord
+                Join the Community
               </Link>
             </div>
             <div>

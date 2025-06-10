@@ -1,4 +1,7 @@
 import { PricingTable } from '@clerk/nextjs';
+import { ProPlanSubscription } from '@/components/billing/ProPlanSubscription';
+import { PaygCreditPurchase } from '@/components/billing/PaygCreditPurchase';
+import { SignedIn, SignedOut } from '@clerk/nextjs';
 
 export default function PricingPage() {
   return (
@@ -15,10 +18,26 @@ export default function PricingPage() {
           </p>
         </div>
 
-        {/* Clerk Pricing Table */}
-        <div className="max-w-6xl mx-auto">
-          <PricingTable />
-        </div>
+        {/* Pricing Options */}
+        <SignedIn>
+          <div className="max-w-6xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 justify-items-center">
+              {/* Pro Plan Subscription */}
+              <ProPlanSubscription />
+
+              {/* PAYG Credit Purchase */}
+              <div className="w-full max-w-md">
+                <PaygCreditPurchase currentCredits={0} />
+              </div>
+            </div>
+          </div>
+        </SignedIn>
+
+        <SignedOut>
+          <div className="max-w-6xl mx-auto">
+            <PricingTable />
+          </div>
+        </SignedOut>
 
         {/* Additional Info */}
         <div className="mt-16 text-center">

@@ -15,7 +15,7 @@ export interface PricingPlan {
 export const PRICING_PLANS: Record<string, PricingPlan> = {
   free: {
     id: 'free',
-    name: 'Free Plan',
+    name: 'Free Trial',
     price: 0,
     credits: 75, // 50-100 credits (introductory)
     features: [

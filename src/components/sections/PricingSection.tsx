@@ -79,7 +79,7 @@ export function PricingSection() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <PricingTier
-          name="Free Plan"
+          name="Free Trial"
           description="7-day trial, then upgrade required."
           price="$0"
           priceDetail="/trial"

@@ -45,12 +45,12 @@ export function ContactSection() {
             description={
               <Button variant="outline" size="lg" asChild>
                 <Link
-                  href="https://discord.gg/tVb7zvMY"
+                  href="https://discord.gg/VNHHPQap"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2"
                 >
-                  Join Discord Community
+                  Join Discord Server
                 </Link>
               </Button>
             }
@@ -59,7 +59,7 @@ export function ContactSection() {
           <ContactMethod
             icon={<Mail className="h-5 w-5 text-primary" />}
             title="Email Us"
-            description="manalkaff@gmail.com"
+            description="nodepilotdev@gmail.com"
           />
 
           <ContactMethod

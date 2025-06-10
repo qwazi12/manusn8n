@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@clerk/nextjs';
+import { loadStripe } from '@stripe/stripe-js';
 
 interface PaygCreditPurchaseProps {
   currentCredits: number;
@@ -34,24 +35,39 @@ export function PaygCreditPurchase({ currentCredits, onPurchaseComplete }: PaygC
       // For now, simulate the purchase
       console.log(`Purchasing ${credits} credits for $${credits === 100 ? 5 : credits * 0.045}`);
       
-      // Simulate API call
-      const response = await fetch('/api/purchase-credits', {
+      // Create Stripe checkout session
+      const response = await fetch('/api/billing/create-checkout-session', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          credits_amount: credits,
-          payment_intent_id: `pi_mock_${Date.now()}` // Mock payment intent
+          priceId: 'price_1RR1a1KgH5HMzGLeTCXYKfOC', // PAYG credits price ID
+          mode: 'payment',
+          successUrl: `${window.location.origin}/dashboard?purchase=success`,
+          cancelUrl: `${window.location.origin}/pricing?purchase=cancelled`,
         }),
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        onPurchaseComplete?.(data.new_credit_balance);
-        alert(`Successfully purchased ${credits} credits!`);
-      } else {
-        throw new Error('Purchase failed');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create checkout session');
+      }
+
+      const { sessionId } = await response.json();
+
+      // Redirect to Stripe Checkout
+      const stripe = await loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+      if (!stripe) {
+        throw new Error('Stripe failed to load');
+      }
+
+      const { error: stripeError } = await stripe.redirectToCheckout({
+        sessionId,
+      });
+
+      if (stripeError) {
+        throw new Error(stripeError.message);
       }
     } catch (error) {
       console.error('Purchase error:', error);

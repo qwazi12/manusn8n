@@ -33,7 +33,7 @@ export default function RefundPolicyPage() {
           <h2 className="text-xl font-bold mt-6 mb-2">How to Request a Refund</h2>
 
           <p>
-            To request a refund, please contact our support team at <strong>manalkaff@gmail.com</strong> with
+            To request a refund, please contact our support team at <strong>nodepilotdev@gmail.com</strong> with
             the following information:
           </p>
 
@@ -71,7 +71,7 @@ export default function RefundPolicyPage() {
           <h2 className="text-xl font-bold mt-6 mb-2">Contact Us</h2>
 
           <p>
-            If you have any questions about our Refund Policy, please contact us at <strong>manalkaff@gmail.com</strong>.
+            If you have any questions about our Refund Policy, please contact us at <strong>nodepilotdev@gmail.com</strong>.
           </p>
         </div>
       </div>

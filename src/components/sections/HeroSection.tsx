@@ -33,7 +33,7 @@ export function HeroSection() {
             </SignInButton>
           </SignedOut>
           <Button variant="outline" size="lg" asChild>
-            <Link href="https://discord.gg/tVb7zvMY" target="_blank" rel="noopener noreferrer">
+            <Link href="https://discord.gg/VNHHPQap" target="_blank" rel="noopener noreferrer">
               Join the Community
             </Link>
           </Button>

@@ -24,7 +24,7 @@ export function DiscordCTASection() {
               asChild
             >
               <Link
-                href="https://discord.gg/tVb7zvMY"
+                href="https://discord.gg/VNHHPQap"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2"
