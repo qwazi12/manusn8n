@@ -1,5 +1,7 @@
 # NodePilot - AI-Powered N8N Workflow Generator
 
+**Version: Complete Billing System - January 2025**
+
 NodePilot is an AI-powered SaaS platform that generates n8n automation workflows from natural language prompts. Built with Next.js, Express.js, and powered by OpenAI's GPT-4.
 
 ## 🚀 Features
