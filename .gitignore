@@ -42,3 +42,23 @@ next-env.d.ts
 
 # clerk configuration (can include secrets)
 /.clerk/
+
+# Docker files and volumes
+docker-compose.override.yml
+.docker/
+docker-data/
+*.log
+
+# Backend build files
+backend/dist/
+backend/node_modules/
+backend/.env
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+Thumbs.db

@@ -15,6 +15,9 @@ interface Config {
   openai: {
     apiKey: string;
   };
+  anthropic: {
+    apiKey: string;
+  };
   redis: {
     url: string;
   };
@@ -44,6 +47,12 @@ export const config: Config = {
   // INTEGRATION: Sign up at https://openai.com and get an API key
   openai: {
     apiKey: process.env.OPENAI_API_KEY || 'your-openai-api-key'
+  },
+
+  // PLACEHOLDER: Add your Anthropic API key
+  // INTEGRATION: Sign up at https://console.anthropic.com and get an API key
+  anthropic: {
+    apiKey: process.env.ANTHROPIC_API_KEY || 'your-anthropic-api-key'
   },
   
   // PLACEHOLDER: Add your Redis connection URL

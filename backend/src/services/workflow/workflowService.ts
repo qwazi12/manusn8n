@@ -11,6 +11,8 @@ export interface WorkflowRequest {
   userId: string;
   files?: string[];
   useCache?: boolean;
+  provider?: 'openai' | 'claude';
+  useAdvancedMode?: boolean;
 }
 
 export interface WorkflowResponse {
@@ -133,5 +135,3 @@ class WorkflowService {
     }
   }
 }
-
-export const workflowService = WorkflowService.getInstance();

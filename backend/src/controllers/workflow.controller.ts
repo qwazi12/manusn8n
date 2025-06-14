@@ -9,7 +9,7 @@ class WorkflowController {
    */
   async generateWorkflow(req: Request, res: Response) {
     try {
-      const { prompt, files, useCache } = req.body;
+      const { prompt, files, useCache, provider, useAdvancedMode } = req.body;
       const userId = req.user?.id;
 
       if (!prompt) {
@@ -20,11 +20,18 @@ class WorkflowController {
         return res.status(401).json({ error: 'Unauthorized' });
       }
 
+      // Validate provider if specified
+      if (provider && !['openai', 'claude'].includes(provider)) {
+        return res.status(400).json({ error: 'Invalid AI provider. Use "openai" or "claude"' });
+      }
+
       const result = await workflowService.generateWorkflow({
         prompt,
         userId,
         files,
-        useCache
+        useCache,
+        provider,
+        useAdvancedMode
       });
 
       if (result.status === 'failed' && result.message === 'Insufficient credits') {
