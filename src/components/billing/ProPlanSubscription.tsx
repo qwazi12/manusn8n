@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { useAuth, useUser } from '@clerk/nextjs';
 import { loadStripe } from '@stripe/stripe-js';
 
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || 'pk_live_51RQWb6KgH5HMzGLeQUlIUbxA0WBJOJOLKFikKvkTqofKyCXPrFbQfB9S4ygzq8FDrQkQyRc21rrCIbw0f01Bnb5300hVQxDtiX');
 
 interface ProPlanSubscriptionProps {
   currentPlan?: string;

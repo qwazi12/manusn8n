@@ -57,7 +57,7 @@ export function PaygCreditPurchase({ currentCredits, onPurchaseComplete }: PaygC
       const { sessionId } = await response.json();
 
       // Redirect to Stripe Checkout
-      const stripe = await loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+      const stripe = await loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || 'pk_live_51RQWb6KgH5HMzGLeQUlIUbxA0WBJOJOLKFikKvkTqofKyCXPrFbQfB9S4ygzq8FDrQkQyRc21rrCIbw0f01Bnb5300hVQxDtiX');
       if (!stripe) {
         throw new Error('Stripe failed to load');
       }

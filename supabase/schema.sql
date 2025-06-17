@@ -83,6 +83,20 @@ CREATE TABLE IF NOT EXISTS payments (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- AI Memory table for user preferences and learning
+CREATE TABLE IF NOT EXISTS ai_memories (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    content TEXT NOT NULL,
+    label VARCHAR(255) NOT NULL,
+    score INTEGER NOT NULL CHECK (score >= 1 AND score <= 5),
+    conversation_context TEXT,
+    memory_type VARCHAR(50) DEFAULT 'preference' CHECK (memory_type IN ('preference', 'pattern', 'correction', 'frustration')),
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- Create indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 CREATE INDEX IF NOT EXISTS idx_users_stripe_customer_id ON users(stripe_customer_id);
@@ -95,6 +109,10 @@ CREATE INDEX IF NOT EXISTS idx_subscriptions_user_id ON subscriptions(user_id);
 CREATE INDEX IF NOT EXISTS idx_subscriptions_stripe_subscription_id ON subscriptions(stripe_subscription_id);
 CREATE INDEX IF NOT EXISTS idx_payments_user_id ON payments(user_id);
 CREATE INDEX IF NOT EXISTS idx_payments_stripe_payment_intent_id ON payments(stripe_payment_intent_id);
+CREATE INDEX IF NOT EXISTS idx_ai_memories_user_id ON ai_memories(user_id);
+CREATE INDEX IF NOT EXISTS idx_ai_memories_score ON ai_memories(score);
+CREATE INDEX IF NOT EXISTS idx_ai_memories_active ON ai_memories(is_active);
+CREATE INDEX IF NOT EXISTS idx_ai_memories_created_at ON ai_memories(created_at DESC);
 
 -- Create updated_at trigger function
 CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -115,12 +133,16 @@ CREATE TRIGGER update_workflows_updated_at BEFORE UPDATE ON workflows
 CREATE TRIGGER update_subscriptions_updated_at BEFORE UPDATE ON subscriptions
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+CREATE TRIGGER update_ai_memories_updated_at BEFORE UPDATE ON ai_memories
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
 -- Enable Row Level Security (RLS)
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE workflows ENABLE ROW LEVEL SECURITY;
 ALTER TABLE credit_history ENABLE ROW LEVEL SECURITY;
 ALTER TABLE subscriptions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE payments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ai_memories ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies for users table
 CREATE POLICY "Users can view own profile" ON users
@@ -162,6 +184,22 @@ CREATE POLICY "Users can view own payments" ON payments
 
 CREATE POLICY "System can insert payments" ON payments
     FOR INSERT WITH CHECK (true);
+
+-- RLS Policies for ai_memories table
+CREATE POLICY "Users can view own memories" ON ai_memories
+    FOR SELECT USING (auth.uid()::text = user_id::text);
+
+CREATE POLICY "Users can insert own memories" ON ai_memories
+    FOR INSERT WITH CHECK (auth.uid()::text = user_id::text);
+
+CREATE POLICY "Users can update own memories" ON ai_memories
+    FOR UPDATE USING (auth.uid()::text = user_id::text);
+
+CREATE POLICY "Users can delete own memories" ON ai_memories
+    FOR DELETE USING (auth.uid()::text = user_id::text);
+
+CREATE POLICY "Service role can manage memories" ON ai_memories
+    FOR ALL USING (auth.role() = 'service_role');
 
 -- Insert sample data for testing (optional)
 -- You can remove this section if you don't want sample data

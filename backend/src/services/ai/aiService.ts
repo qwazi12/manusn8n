@@ -1,9 +1,9 @@
 // src/services/ai/aiService.ts
-import Anthropic from '@anthropic-ai/sdk';
+import { OpenAI } from 'openai';
 import { config } from '../../config/config';
 import { logger } from '../../utils/logger';
 
-// Types for AI service
+// Types for AI service - RESTORED from original implementation
 export interface WorkflowGenerationRequest {
   prompt: string;
   userId: string;
@@ -12,21 +12,21 @@ export interface WorkflowGenerationRequest {
 
 export interface WorkflowGenerationResponse {
   workflow: any;
-  status: 'completed' | 'failed';
+  status: 'completed' | 'failed' | 'in_progress';
   message?: string;
 }
 
 class AiService {
-  private anthropic: Anthropic;
+  private openai: OpenAI;
   private static instance: AiService;
 
   private constructor() {
-    // Using Claude API for AI-powered workflow generation
-    this.anthropic = new Anthropic({
-      apiKey: config.anthropic.apiKey,
+    // Initialize OpenAI with API key from config
+    this.openai = new OpenAI({
+      apiKey: config.openai.apiKey,
     });
 
-    logger.info('AI service initialized with Claude');
+    logger.info('AI service initialized');
   }
 
   public static getInstance(): AiService {
@@ -37,64 +37,51 @@ class AiService {
   }
 
   /**
-   * Generate a workflow draft using Claude
+   * Generate a workflow draft using OpenAI
    */
   async generateDraft(request: WorkflowGenerationRequest): Promise<any> {
     try {
-      logger.info('Generating workflow draft with Claude', { userId: request.userId });
+      logger.info('Generating workflow draft', { userId: request.userId });
 
-      const message = await this.anthropic.messages.create({
-        model: "claude-3-5-sonnet-20241022",
-        max_tokens: 4000,
-        temperature: 0.7,
-        system: `You are the AI component of NodePilot, a SaaS platform designed to convert natural language instructions into functional n8n workflow JSON. Your primary purpose is to assist users in generating, validating, and understanding n8n workflows.
-
-Generate a valid n8n workflow JSON based on the user's request. Return only the JSON workflow structure with nodes and connections.
-
-Each node should have:
-- id: unique identifier
-- type: n8n node type (e.g., 'n8n-nodes-base.webhook', 'n8n-nodes-base.googleSheets')
-- position: [x, y] coordinates
-- parameters: node-specific configuration
-- name: descriptive name
-
-Connections should specify:
-- source: source node id
-- target: target node id
-- sourceHandle: 'main' (default)
-- targetHandle: 'main' (default)
-
-Make sure the JSON is valid and follows n8n workflow structure exactly.`,
+      // Real OpenAI implementation
+      const completion = await this.openai.chat.completions.create({
+        model: "gpt-4o-mini", // Use available model
         messages: [
+          {
+            role: "system",
+            content: `You are an expert in n8n workflows. Create a valid n8n workflow JSON based on the user's request.
+            Return only the JSON workflow structure with nodes and connections.
+            Each node should have: id, type, position [x, y], and parameters.
+            Connections should specify source, target, sourceHandle, and targetHandle.`
+          },
           {
             role: "user",
             content: request.prompt
           }
-        ]
+        ],
+        temperature: 0.7,
+        max_tokens: 2000,
       });
 
-      // Extract content from Claude response
-      const content = message.content[0];
-      if (content.type !== 'text') {
-        throw new Error('Unexpected response type from Claude');
+      // Parse and validate the response
+      const content = completion.choices[0].message.content;
+      if (!content) {
+        throw new Error('No content received from OpenAI');
       }
 
       try {
-        // Try to extract JSON from the response
-        const jsonMatch = content.text.match(/```(?:json)?\s*(\{[\s\S]*\})\s*```/);
-        const jsonString = jsonMatch ? jsonMatch[1] : content.text;
-
-        const workflowJson = JSON.parse(jsonString);
+        const workflowJson = JSON.parse(content);
         return workflowJson;
       } catch (parseError) {
-        logger.warn('Failed to parse Claude response as JSON, using mock workflow');
+        logger.warn('Failed to parse OpenAI response as JSON, using mock workflow');
+        // Fallback to mock workflow if parsing fails
         return this.getMockWorkflow(request.prompt);
       }
     } catch (error) {
-      logger.error('Error generating workflow draft with Claude', { error, userId: request.userId });
+      logger.error('Error generating workflow draft', { error, userId: request.userId });
 
-      // If Claude API fails, return a mock workflow for testing
-      logger.warn('Claude API failed, returning mock workflow for testing');
+      // If OpenAI API fails, return a mock workflow for testing
+      logger.warn('OpenAI API failed, returning mock workflow for testing');
       return this.getMockWorkflow(request.prompt);
     }
   }
@@ -127,12 +114,12 @@ Make sure the JSON is valid and follows n8n workflow structure exactly.`,
           type: 'n8n-nodes-base.emailSend',
           position: [500, 300],
           parameters: {
-            fromEmail: 'noreply@nodepilot.dev',
+            fromEmail: 'noreply@example.com',
             toEmail: 'user@example.com',
-            subject: 'NodePilot Workflow Notification',
-            text: `Claude-powered workflow triggered: ${prompt}`
+            subject: 'Workflow Notification',
+            text: `Workflow triggered: ${prompt}`
           },
-          name: 'Send Email via Claude'
+          name: 'Send Email'
         }
       ],
       connections: [
@@ -153,79 +140,89 @@ Make sure the JSON is valid and follows n8n workflow structure exactly.`,
   }
 
   /**
-   * Polish a workflow draft using Claude
+   * Polish a workflow draft using OpenAI
    */
   async polishWorkflow(draft: any, request: WorkflowGenerationRequest): Promise<any> {
     try {
-      logger.info('Polishing workflow draft with Claude', { userId: request.userId });
+      logger.info('Polishing workflow draft', { userId: request.userId });
 
-      const message = await this.anthropic.messages.create({
-        model: "claude-3-5-sonnet-20241022",
-        max_tokens: 4000,
-        temperature: 0.3,
-        system: `You are an expert in n8n workflows. Polish and improve the provided n8n workflow JSON.
-
-Ensure:
-- Proper error handling nodes
-- Meaningful and descriptive node names
-- Optimized connections and flow
-- Follow n8n best practices
-- Add proper node positioning for visual clarity
-- Include necessary parameters for each node type
-- Validate all node types are correct n8n node types
-
-Return only the improved JSON workflow structure. Make sure the JSON is valid.`,
+      // Real OpenAI implementation
+      const completion = await this.openai.chat.completions.create({
+        model: "gpt-4o-mini", // Use available model
         messages: [
           {
+            role: "system",
+            content: `You are an expert in n8n workflows. Polish and improve the provided n8n workflow JSON.
+            Ensure proper error handling, add meaningful node names, optimize connections, and follow n8n best practices.
+            Return only the improved JSON workflow structure.`
+          },
+          {
             role: "user",
-            content: `Original request: ${request.prompt}
-
-Draft workflow:
-${JSON.stringify(draft, null, 2)}
-
-Please polish this workflow and return only the improved JSON.`
+            content: `Original request: ${request.prompt}\n\nDraft workflow:\n${JSON.stringify(draft, null, 2)}\n\nPlease polish this workflow.`
           }
-        ]
+        ],
+        temperature: 0.3,
+        max_tokens: 2500,
       });
 
-      // Extract content from Claude response
-      const content = message.content[0];
-      if (content.type !== 'text') {
-        throw new Error('Unexpected response type from Claude for polishing');
+      // Parse and validate the response
+      const content = completion.choices[0].message.content;
+      if (!content) {
+        throw new Error('No content received from OpenAI for polishing');
       }
 
       try {
-        // Try to extract JSON from the response
-        const jsonMatch = content.text.match(/```(?:json)?\s*(\{[\s\S]*\})\s*```/);
-        const jsonString = jsonMatch ? jsonMatch[1] : content.text;
-
-        const polishedWorkflow = JSON.parse(jsonString);
+        const polishedWorkflow = JSON.parse(content);
         return polishedWorkflow;
       } catch (parseError) {
-        logger.warn('Failed to parse polished workflow from Claude, returning original draft');
-        return draft;
+        logger.warn('Failed to parse polished workflow, returning original draft');
+        return draft; // Return original draft if polishing fails
       }
     } catch (error) {
-      logger.error('Error polishing workflow with Claude', { error, userId: request.userId });
+      logger.error('Error polishing workflow', { error, userId: request.userId });
+      // Return original draft if polishing fails
       return draft;
     }
   }
 
   /**
-   * Generate a complete workflow using Claude dual-pass approach
-   *
-   * 1. Generate draft with Claude (creative, initial structure)
-   * 2. Polish with Claude (detailed, refined, optimized)
+   * Generate a complete workflow using dual-model approach
    */
   async generateWorkflow(request: WorkflowGenerationRequest): Promise<WorkflowGenerationResponse> {
     try {
-      // Step 1: Generate draft with Claude
+      // Step 1: Generate draft with OpenAI
       const draft = await this.generateDraft(request);
 
-      // Step 2: Polish with Claude
+      // Step 2: Polish with OpenAI
       const polished = await this.polishWorkflow(draft, request);
 
       return {
         workflow: polished,
         status: 'completed',
-        message: 'Workf
+        message: 'Workflow generated successfully'
+      };
+    } catch (error) {
+      logger.error('Error in workflow generation pipeline', { error, userId: request.userId });
+      return {
+        workflow: null,
+        status: 'failed',
+        message: error instanceof Error ? error.message : 'Unknown error occurred'
+      };
+    }
+  }
+}
+
+export const aiService = AiService.getInstance();low generated successfully'
+      };
+    } catch (error) {
+      logger.error('Error in workflow generation pipeline', { error, userId: request.userId });
+      return {
+        workflow: null,
+        status: 'failed',
+        message: error instanceof Error ? error.message : 'Unknown error occurred'
+      };
+    }
+  }
+}
+
+export const aiService = AiService.getInstance();

@@ -18,7 +18,7 @@ export interface WorkflowRequest {
 export interface WorkflowResponse {
   workflow: any;
   workflowId?: string;
-  status: 'completed' | 'failed';
+  status: 'completed' | 'failed' | 'in_progress';
   message?: string;
   remainingCredits: number;
 }
@@ -135,3 +135,5 @@ class WorkflowService {
     }
   }
 }
+
+export const workflowService = WorkflowService.getInstance();

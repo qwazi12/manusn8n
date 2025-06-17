@@ -167,6 +167,102 @@ class SupabaseService {
       throw error;
     }
   }
+
+  // AI Memory operations
+  async storeMemory(memoryData: {
+    user_id: string;
+    content: string;
+    label: string;
+    score: number;
+    conversation_context?: string;
+    memory_type?: string;
+  }) {
+    try {
+      const { data, error } = await this.client
+        .from('ai_memories')
+        .insert(memoryData)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      logger.error('Error storing memory', { error, memoryData });
+      throw error;
+    }
+  }
+
+  async getUserMemories(userId: string) {
+    try {
+      const { data, error } = await this.client
+        .from('ai_memories')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('is_active', true)
+        .gte('score', 4) // Only get high-quality memories
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      logger.error('Error fetching user memories', { error, userId });
+      throw error;
+    }
+  }
+
+  async deleteMemory(memoryId: string, userId: string) {
+    try {
+      const { data, error } = await this.client
+        .from('ai_memories')
+        .update({ is_active: false }) // Soft delete
+        .eq('id', memoryId)
+        .eq('user_id', userId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      logger.error('Error deleting memory', { error, memoryId, userId });
+      throw error;
+    }
+  }
+
+  async getMemoryById(memoryId: string, userId: string) {
+    try {
+      const { data, error } = await this.client
+        .from('ai_memories')
+        .select('*')
+        .eq('id', memoryId)
+        .eq('user_id', userId)
+        .eq('is_active', true)
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      logger.error('Error fetching memory by ID', { error, memoryId, userId });
+      throw error;
+    }
+  }
+
+  async updateMemoryScore(memoryId: string, userId: string, newScore: number) {
+    try {
+      const { data, error } = await this.client
+        .from('ai_memories')
+        .update({ score: newScore })
+        .eq('id', memoryId)
+        .eq('user_id', userId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      logger.error('Error updating memory score', { error, memoryId, userId, newScore });
+      throw error;
+    }
+  }
 }
 
 export const supabaseService = SupabaseService.getInstance();
