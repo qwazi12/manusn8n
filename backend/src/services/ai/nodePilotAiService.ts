@@ -64,47 +64,123 @@ class NodePilotAiService {
   }
 
   /**
-   * Initialize AI prompts from the 7-file system
+   * Initialize AI prompts from Supabase database (with file fallback)
    */
   private async initializePrompts(): Promise<void> {
     try {
+      // Try loading from Supabase database first
+      await this.loadPromptsFromDatabase();
+      await this.loadToolsFromDatabase();
+      logger.info('All prompts and tools loaded successfully from database');
+    } catch (error) {
+      logger.warn('Failed to load from database, falling back to files', { error });
+      // Fallback to file system if database fails
+      await this.loadPromptsFromFiles();
+    }
+  }
+
+  /**
+   * Load prompts from Supabase database
+   */
+  private async loadPromptsFromDatabase(): Promise<void> {
+    try {
+      const { supabaseService } = await import('../database/supabaseService');
+      const client = supabaseService.getClient();
+
+      // Load active prompts
+      const { data: prompts, error: promptsError } = await client
+        .from('ai_prompts')
+        .select('name, content')
+        .eq('is_active', true);
+
+      if (promptsError) throw promptsError;
+
+      if (prompts && prompts.length > 0) {
+        prompts.forEach(prompt => {
+          this.prompts.set(prompt.name, prompt.content);
+          logger.info(`Loaded prompt from DB: ${prompt.name}`);
+        });
+      } else {
+        throw new Error('No prompts found in database');
+      }
+    } catch (error) {
+      logger.error('Error loading prompts from database', { error });
+      throw error;
+    }
+  }
+
+  /**
+   * Load tools from Supabase database
+   */
+  private async loadToolsFromDatabase(): Promise<void> {
+    try {
+      const { supabaseService } = await import('../database/supabaseService');
+      const client = supabaseService.getClient();
+
+      // Load active tools
+      const { data: tools, error: toolsError } = await client
+        .from('ai_tools')
+        .select('name, config')
+        .eq('is_active', true);
+
+      if (toolsError) throw toolsError;
+
+      if (tools && tools.length > 0) {
+        // Get the core_tools config
+        const coreTools = tools.find(tool => tool.name === 'core_tools');
+        if (coreTools) {
+          this.tools = coreTools.config;
+          logger.info('Loaded tools configuration from database');
+        }
+      } else {
+        throw new Error('No tools found in database');
+      }
+    } catch (error) {
+      logger.error('Error loading tools from database', { error });
+      throw error;
+    }
+  }
+
+  /**
+   * Fallback: Load prompts from files
+   */
+  private async loadPromptsFromFiles(): Promise<void> {
+    try {
       const promptsDir = path.join(__dirname, '../../ai_prompts');
-      
-      // Load all prompt files
+
+      // Load all prompt files as fallback
       const promptFiles = [
-        'nodepilot_ai_prompt.txt',
-        'nodepilot_ai_chatprompt.txt', 
-        'nodepilot_ai_agentloop.txt',
-        'nodepilot_ai_modules.txt',
-        'nodepilot_ai_memory_prompt.txt',
-        'nodepilot_ai_memory_rating_prompt.txt'
+        'main_prompt.txt',
+        'chat_prompt.txt',
+        'agent_loop.txt',
+        'modules.txt',
+        'memory_prompt.txt',
+        'memory_rating_prompt.txt'
       ];
 
       for (const file of promptFiles) {
         try {
           const content = await fs.readFile(path.join(promptsDir, file), 'utf-8');
-          const key = file.replace('.txt', '').replace('nodepilot_ai_', '');
+          const key = file.replace('.txt', '').replace('_', '');
           this.prompts.set(key, content);
-          logger.info(`Loaded prompt: ${key}`);
+          logger.info(`Loaded prompt from file: ${key}`);
         } catch (error) {
           logger.warn(`Could not load prompt file ${file}, using fallback`);
-          // Set fallback prompts based on the content you provided
           this.setFallbackPrompts();
         }
       }
 
-      // Load tools configuration
+      // Load tools configuration from file
       try {
-        const toolsContent = await fs.readFile(path.join(promptsDir, 'nodepilot_ai_tools.json'), 'utf-8');
+        const toolsContent = await fs.readFile(path.join(promptsDir, 'tools.json'), 'utf-8');
         this.tools = JSON.parse(toolsContent);
-        logger.info('Loaded tools configuration');
+        logger.info('Loaded tools configuration from file');
       } catch (error) {
         logger.warn('Could not load tools file, using fallback');
         this.setFallbackTools();
       }
-
     } catch (error) {
-      logger.error('Error initializing prompts:', error);
+      logger.error('Error loading prompts from files', { error });
       this.setFallbackPrompts();
       this.setFallbackTools();
     }

@@ -212,17 +212,4 @@ class AiService {
   }
 }
 
-export const aiService = AiService.getInstance();low generated successfully'
-      };
-    } catch (error) {
-      logger.error('Error in workflow generation pipeline', { error, userId: request.userId });
-      return {
-        workflow: null,
-        status: 'failed',
-        message: error instanceof Error ? error.message : 'Unknown error occurred'
-      };
-    }
-  }
-}
-
 export const aiService = AiService.getInstance();
