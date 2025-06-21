@@ -75,12 +75,26 @@ router.post('/chat/message', async (req, res) => {
       conversationId
     );
 
+    // Get user credits if workflow was generated (credits were used)
+    let creditsRemaining;
+    if (result.workflow && result.success) {
+      try {
+        // Import credit service to get current credits
+        const { creditService } = await import('../services/credit/creditService');
+        const creditInfo = await creditService.getUserCredits(userId);
+        creditsRemaining = creditInfo.credits;
+      } catch (creditError) {
+        logger.error('Error fetching user credits:', creditError);
+      }
+    }
+
     return res.status(200).json({
       success: result.success,
       message: result.message,
       conversationResponse: result.conversationResponse,
       workflow: result.workflow,
       suggestions: result.suggestions,
+      creditsRemaining,
       error: result.error
     });
   } catch (error) {

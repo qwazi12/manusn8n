@@ -62,54 +62,46 @@ export default function DashboardPage() {
       files,
       timestamp: new Date()
     };
-    
+
     setMessages(prev => [...prev, userMessage]);
     setIsLoading(true);
 
     try {
-      // Call the backend API to generate workflow
-      const response = await fetch('/api/generate-workflow', {
+      // Call the enhanced chat API
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://manusn8n-production.up.railway.app'}/api/chat/message`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          prompt: message,
-          files: files.map(f => f.name) // For now, just send file names
+          message: message,
+          userId: user?.id,
         }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to generate workflow');
+        throw new Error(data.error || 'Failed to process message');
       }
 
       // Add assistant response
       const assistantMessage: Message = {
         role: 'assistant',
-        content: `✅ **Workflow Generated Successfully!**
-
-**Prompt:** ${message}
-
-**Generated Workflow:**
-- **Nodes:** ${data.workflow?.nodes?.length || 0} workflow steps
-- **Connections:** ${data.workflow?.connections?.length || 0} data flows
-- **Status:** Ready to use
-
-**Credits Used:** 1
-**Remaining Credits:** ${data.remaining_credits}
-
-You can copy this workflow JSON and import it directly into n8n!`,
+        content: data.conversationResponse || data.message,
         timestamp: new Date(),
         workflow: data.workflow
       };
 
       setMessages(prev => [...prev, assistantMessage]);
-      setCredits(data.remaining_credits);
-      setUserCredits(data.remaining_credits);
 
-      // Refresh trial status after credit usage
+      // Update credits if provided
+      if (data.creditsRemaining !== undefined) {
+        setCredits(data.creditsRemaining);
+        setUserCredits(data.creditsRemaining);
+      }
+
+      // Refresh trial status after potential credit usage
       fetchUserCredits();
 
     } catch (error: any) {
@@ -193,15 +185,31 @@ Please try again or contact support if the issue persists.`,
                       </div>
                     )}
                     {message.workflow && (
-                      <div className="mt-3 p-2 bg-gray-100 rounded text-xs">
+                      <div className="mt-3 p-2 bg-gray-100 rounded text-xs space-x-2">
                         <button
                           onClick={() => {
                             navigator.clipboard.writeText(JSON.stringify(message.workflow, null, 2));
                             alert('Workflow JSON copied to clipboard!');
                           }}
-                          className="text-blue-600 hover:text-blue-800"
+                          className="text-blue-600 hover:text-blue-800 mr-2"
                         >
-                          📋 Copy Workflow JSON
+                          📋 Copy JSON
+                        </button>
+                        <button
+                          onClick={() => {
+                            const blob = new Blob([JSON.stringify(message.workflow, null, 2)], { type: 'application/json' });
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `workflow-${Date.now()}.json`;
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                            URL.revokeObjectURL(url);
+                          }}
+                          className="text-green-600 hover:text-green-800"
+                        >
+                          💾 Download JSON
                         </button>
                       </div>
                     )}

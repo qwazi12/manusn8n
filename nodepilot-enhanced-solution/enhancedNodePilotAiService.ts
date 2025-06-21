@@ -1,9 +1,7 @@
 // Enhanced NodePilot AI Service with OpenAI GPT-4o + Claude Sonnet 4 Hybrid Architecture
 import OpenAI from 'openai';
 import Anthropic from '@anthropic-ai/sdk';
-import { config } from '../../config/config';
-import { logger } from '../../utils/logger';
-import { supabaseService } from '../database/supabaseService';
+import { createClient } from '@supabase/supabase-js';
 
 export interface ConversationMessage {
   id: string;
@@ -31,44 +29,39 @@ export interface WorkflowGenerationResponse {
   error?: string;
 }
 
-class EnhancedNodePilotAiService {
-  private static instance: EnhancedNodePilotAiService;
+export class EnhancedNodePilotAiService {
   private openai: OpenAI;
   private anthropic: Anthropic;
   private supabase: any;
   private prompts: Map<string, string> = new Map();
   private conversationHistory: Map<string, ConversationMessage[]> = new Map();
 
-  private constructor() {
+  constructor() {
     // Initialize OpenAI for conversations
     this.openai = new OpenAI({
-      apiKey: config.openai.apiKey
+      apiKey: process.env.OPENAI_API_KEY!
     });
 
     // Initialize Claude for workflow generation
     this.anthropic = new Anthropic({
-      apiKey: config.anthropic.apiKey
+      apiKey: process.env.ANTHROPIC_API_KEY!
     });
 
-    // Use existing Supabase service
-    this.supabase = supabaseService.getClient();
+    // Initialize Supabase
+    this.supabase = createClient(
+      process.env.SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
 
     this.initializeService();
-  }
-
-  public static getInstance(): EnhancedNodePilotAiService {
-    if (!EnhancedNodePilotAiService.instance) {
-      EnhancedNodePilotAiService.instance = new EnhancedNodePilotAiService();
-    }
-    return EnhancedNodePilotAiService.instance;
   }
 
   private async initializeService(): Promise<void> {
     try {
       await this.loadPromptsFromDatabase();
-      logger.info('Enhanced NodePilot AI service initialized with GPT-4o + Claude Sonnet 4 hybrid architecture');
+      console.log('Enhanced NodePilot AI service initialized with GPT-4o + Claude Sonnet 4 hybrid architecture');
     } catch (error) {
-      logger.error('Failed to initialize Enhanced NodePilot AI service:', error);
+      console.error('Failed to initialize Enhanced NodePilot AI service:', error);
     }
   }
 
@@ -82,13 +75,13 @@ class EnhancedNodePilotAiService {
 
       prompts?.forEach((prompt: any) => {
         this.prompts.set(prompt.name, prompt.content);
-        logger.info(`Loaded prompt from DB: ${prompt.name}`);
+        console.log(`Loaded prompt from DB: ${prompt.name}`);
       });
 
       // Add conversation-specific prompts
       await this.ensureConversationPrompts();
     } catch (error) {
-      logger.error('Error loading prompts from database:', error);
+      console.error('Error loading prompts from database:', error);
     }
   }
 
@@ -169,7 +162,7 @@ Output: Optimized prompt for workflow generation`
           });
         
         this.prompts.set(prompt.name, prompt.content);
-        logger.info(`Added new conversation prompt: ${prompt.name}`);
+        console.log(`Added new conversation prompt: ${prompt.name}`);
       }
     }
   }
@@ -192,7 +185,7 @@ Output: Optimized prompt for workflow generation`
         id: Date.now().toString(),
         role: 'user',
         content: message,
-        intent: classification.intent as 'workflow_request' | 'general_conversation' | 'clarification_needed',
+        intent: classification.intent,
         confidence: classification.confidence,
         timestamp: new Date()
       };
@@ -227,7 +220,7 @@ Output: Optimized prompt for workflow generation`
       return response;
 
     } catch (error) {
-      logger.error('Error processing user message:', error);
+      console.error('Error processing user message:', error);
       return {
         success: false,
         message: 'I encountered an error processing your request. Please try again.',
@@ -264,7 +257,7 @@ Output: Optimized prompt for workflow generation`
         entities: result.entities || {}
       };
     } catch (error) {
-      logger.error('Intent classification error:', error);
+      console.error('Intent classification error:', error);
       // Fallback classification
       const isWorkflowRequest = /create|build|automate|workflow|connect|integrate/i.test(message);
       return {
@@ -308,7 +301,7 @@ Output: Optimized prompt for workflow generation`
         suggestions
       };
     } catch (error) {
-      logger.error('Conversation handling error:', error);
+      console.error('Conversation handling error:', error);
       return {
         success: false,
         message: 'I\'m here to help! What would you like to know about NodePilot?',
@@ -358,43 +351,11 @@ Output: Optimized prompt for workflow generation`
           }
         }
       } catch (parseError) {
-        logger.error('Failed to parse workflow JSON:', parseError);
+        console.error('Failed to parse workflow JSON:', parseError);
       }
 
       // Generate conversational response using OpenAI
       const conversationResponse = await this.generateWorkflowExplanation(request.userPrompt, workflow);
-
-      // Save to workflow_generations table and deduct credits
-      if (workflow) {
-        try {
-          // Deduct credits first
-          const { creditService } = await import('../credit/creditService');
-          await creditService.deductCreditsForWorkflow(request.userId, 'workflow_gen_' + Date.now(), 1);
-
-          // Save workflow generation
-          const { data: workflowGeneration, error } = await this.supabase
-            .from('workflow_generations')
-            .insert({
-              user_id: request.userId,
-              original_prompt: request.userPrompt,
-              optimized_prompt: optimizedPrompt,
-              workflow_data: workflow,
-              generation_method: 'claude_sonnet_4',
-              success: true,
-              credits_used: 1
-            })
-            .select()
-            .single();
-
-          if (error) {
-            logger.error('Error saving workflow generation:', error);
-          } else {
-            logger.info('Workflow generation saved successfully', { id: workflowGeneration.id });
-          }
-        } catch (saveError) {
-          logger.error('Error saving workflow generation or deducting credits:', saveError);
-        }
-      }
 
       return {
         success: true,
@@ -405,7 +366,7 @@ Output: Optimized prompt for workflow generation`
       };
 
     } catch (error) {
-      logger.error('Workflow generation error:', error);
+      console.error('Workflow generation error:', error);
       
       // Fallback conversational response
       const fallbackResponse = await this.handleConversationWithOpenAI(
@@ -442,7 +403,7 @@ Output: Optimized prompt for workflow generation`
 
       return response.choices[0]?.message?.content || request.userPrompt;
     } catch (error) {
-      logger.error('Prompt optimization error:', error);
+      console.error('Prompt optimization error:', error);
       return request.userPrompt;
     }
   }
@@ -468,7 +429,7 @@ Output: Optimized prompt for workflow generation`
 
       return response.choices[0]?.message?.content || 'I\'ve created a workflow for you! You can copy or download it to use in n8n.';
     } catch (error) {
-      logger.error('Workflow explanation error:', error);
+      console.error('Workflow explanation error:', error);
       return 'I\'ve created a workflow for you! You can copy or download it to use in n8n.';
     }
   }
@@ -497,39 +458,21 @@ Output: Optimized prompt for workflow generation`
     try {
       // Store in Supabase - you can extend your existing schema
       // This is a placeholder for conversation storage
-      logger.info(`Storing conversation for user ${userId}:`, history.length, 'messages');
+      console.log(`Storing conversation for user ${userId}:`, history.length, 'messages');
     } catch (error) {
-      logger.error('Error storing conversation:', error);
+      console.error('Error storing conversation:', error);
     }
   }
-
-
 
   // Legacy compatibility method for existing workflow generation
-  async generateWorkflow(request: any): Promise<any> {
-    // Handle both old string format and new object format
-    if (typeof request === 'string') {
-      // Old format: generateWorkflow(prompt, userId)
-      const response = await this.processUserMessage('anonymous', request);
-      return {
-        workflow: response.workflow,
-        status: response.success ? 'completed' : 'failed',
-        message: response.message
-      };
-    } else {
-      // New format: generateWorkflow({ prompt, userId, files })
-      const response = await this.processUserMessage(
-        request.userId || 'anonymous',
-        request.prompt
-      );
-      return {
-        workflow: response.workflow,
-        status: response.success ? 'completed' : 'failed',
-        message: response.message
-      };
-    }
+  async generateWorkflow(prompt: string, userId?: string): Promise<any> {
+    const response = await this.processUserMessage(userId || 'anonymous', prompt);
+    return {
+      success: response.success,
+      workflow: response.workflow,
+      message: response.message,
+      error: response.error
+    };
   }
 }
-
-export const nodePilotAiService = EnhancedNodePilotAiService.getInstance();
 
