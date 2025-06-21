@@ -6,6 +6,7 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import { errorHandler } from './middleware/errorHandler';
 import routes from './routes';
+import './services/ai/nodePilotAiService';
 
 // Load environment variables
 dotenv.config();
@@ -26,6 +27,8 @@ app.use('/api', routes);
 
 // Error handling
 app.use(errorHandler);
+
+// Initialize NodePilot AI service (importing the module initializes it)
 
 // Start server
 app.listen(port, () => {

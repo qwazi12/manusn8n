@@ -1,5 +1,6 @@
 // src/services/workflow/workflowService.ts
-import { aiService, WorkflowGenerationRequest, WorkflowGenerationResponse } from '../ai/aiService';
+import { nodePilotAiService } from '../ai/nodePilotAiService';
+import { WorkflowGenerationRequest, WorkflowGenerationResponse } from '../ai/aiService';
 import { cacheService } from '../cache/cacheService';
 import { creditService } from '../credit/creditService';
 import { supabaseService } from '../database/supabaseService';
@@ -82,7 +83,7 @@ class WorkflowService {
         files
       };
       
-      const generatedWorkflow = await aiService.generateWorkflow(aiRequest);
+      const generatedWorkflow = await nodePilotAiService.generateWorkflow(aiRequest);
       
       // Save workflow to database
       const workflowData = {

@@ -7,7 +7,8 @@ import authRoutes from './auth.routes';
 import batchRoutes from './batch.routes';
 import templateRoutes from './template.routes';
 import pricingRoutes from './pricing.routes';
-import { aiService } from '../services/ai/aiService';
+import { nodePilotAiService } from '../services/ai/nodePilotAiService';
+import { logger } from '../utils/logger';
 
 const router = Router();
 
@@ -34,7 +35,7 @@ router.post('/test-ai', async (req, res) => {
       return res.status(400).json({ error: 'Prompt is required' });
     }
 
-    const result = await aiService.generateWorkflow({
+    const result = await nodePilotAiService.generateWorkflow({
       prompt,
       userId: 'test-user',
       files: []
@@ -46,12 +47,58 @@ router.post('/test-ai', async (req, res) => {
       status: result.status
     });
   } catch (error) {
-    console.error('Test AI error:', error);
+    logger.error('Test AI error:', error);
     return res.status(500).json({ 
       error: 'Internal server error', 
       details: error instanceof Error ? error.message : 'Unknown error' 
     });
   }
+});
+
+// Enhanced chat endpoint - Main conversational interface
+router.post('/chat/message', async (req, res) => {
+  try {
+    const { message, userId, conversationId } = req.body;
+
+    if (!message) {
+      return res.status(400).json({ error: 'Message is required' });
+    }
+
+    if (!userId) {
+      return res.status(400).json({ error: 'User ID is required' });
+    }
+
+    // Use the enhanced AI service for intelligent conversation
+    const result = await nodePilotAiService.processUserMessage(
+      userId,
+      message,
+      conversationId
+    );
+
+    return res.status(200).json({
+      success: result.success,
+      message: result.message,
+      conversationResponse: result.conversationResponse,
+      workflow: result.workflow,
+      suggestions: result.suggestions,
+      error: result.error
+    });
+  } catch (error) {
+    logger.error('Enhanced chat error:', error);
+    return res.status(500).json({
+      error: 'Internal server error',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// Enhanced chat health check
+router.get('/chat/health', (req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    message: 'Enhanced NodePilot AI chat is running',
+    features: ['intent_classification', 'conversation_handling', 'workflow_generation']
+  });
 });
 
 export default router;
