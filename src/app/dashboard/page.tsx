@@ -29,10 +29,45 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [credits, setCredits] = useState<number | null>(null);
 
-  // Fetch user credits on component mount
+  // State for conversation persistence
+  const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
+  const [conversations, setConversations] = useState<any[]>([]);
+  const [loadingConversation, setLoadingConversation] = useState(false);
+
+  // Fetch user credits and load conversation history on component mount
   useEffect(() => {
     fetchUserCredits();
+    loadConversationHistory();
   }, []);
+
+  // Load conversation history from localStorage or create new conversation
+  const loadConversationHistory = async () => {
+    try {
+      // Try to get the last conversation ID from localStorage
+      const savedConversationId = localStorage.getItem('currentConversationId');
+
+      if (savedConversationId) {
+        // Load messages for this conversation
+        const response = await fetch(`/api/conversations/${savedConversationId}/messages`);
+        if (response.ok) {
+          const data = await response.json();
+          const loadedMessages = data.messages.map((msg: any) => ({
+            role: msg.role,
+            content: msg.content,
+            timestamp: new Date(msg.created_at),
+            workflow: msg.metadata?.workflow ? JSON.parse(msg.content.match(/```json\n([\s\S]*?)\n```/)?.[1] || '{}') : undefined
+          }));
+          setMessages(loadedMessages);
+          setCurrentConversationId(savedConversationId);
+        } else {
+          // Conversation not found, clear localStorage
+          localStorage.removeItem('currentConversationId');
+        }
+      }
+    } catch (error) {
+      console.error('Error loading conversation history:', error);
+    }
+  };
 
   const fetchUserCredits = async () => {
     try {
@@ -50,6 +85,13 @@ export default function DashboardPage() {
       setCreditsLoading(false);
     }
   }; // Will be fetched from API
+
+  // Function to start a new conversation
+  const startNewConversation = () => {
+    setMessages([]);
+    setCurrentConversationId(null);
+    localStorage.removeItem('currentConversationId');
+  };
 
   // Handler for sending a message
   const handleSendMessage = async (message: string, files: File[]) => {
@@ -75,6 +117,7 @@ export default function DashboardPage() {
         },
         body: JSON.stringify({
           message: message,
+          conversationId: currentConversationId,
         }),
       });
 
@@ -93,6 +136,12 @@ export default function DashboardPage() {
       };
 
       setMessages(prev => [...prev, assistantMessage]);
+
+      // Update conversation ID and save to localStorage
+      if (data.conversationId) {
+        setCurrentConversationId(data.conversationId);
+        localStorage.setItem('currentConversationId', data.conversationId);
+      }
 
       // Update credits if provided
       if (data.creditsRemaining !== undefined) {
@@ -153,6 +202,14 @@ Please try again or contact support if the issue persists.`,
           <div className="mb-10 text-center">
             <h1 className="text-4xl font-bold text-gray-900 mb-2">Hello {userName}</h1>
             <h2 className="text-2xl text-gray-700 font-normal">What can I do for you?</h2>
+            {messages.length > 0 && (
+              <button
+                onClick={startNewConversation}
+                className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+              >
+                🆕 New Chat
+              </button>
+            )}
           </div>
 
           {/* Minimal Trial Warnings Only */}
