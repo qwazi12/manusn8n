@@ -277,7 +277,7 @@ Please try again or contact support if the issue persists.`,
                   <div className="bg-white border border-gray-200 p-3 rounded-lg">
                     <div className="flex items-center space-x-2">
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
-                      <span className="text-sm text-gray-600">Generating workflow...</span>
+                      <span className="text-sm text-gray-600">NodePilot is thinking...</span>
                     </div>
                   </div>
                 </div>

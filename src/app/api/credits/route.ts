@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
 
     // 2. Call the backend Express server credits endpoint
     const backendUrl = process.env.BACKEND_URL || 'https://manusn8n-production.up.railway.app';
-    const response = await fetch(`${backendUrl}/api/credits`, {
+    const response = await fetch(`${backendUrl}/api/credits?userId=${userId}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

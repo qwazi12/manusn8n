@@ -75,16 +75,31 @@ router.post('/chat/message', async (req, res) => {
       conversationId
     );
 
-    // Get user credits if workflow was generated (credits were used)
+    // Handle credit deduction and get remaining credits
     let creditsRemaining;
-    if (result.workflow && result.success) {
+    try {
+      // Always get current credits to display
+      const { creditService } = await import('../services/credit/creditService');
+
+      // If workflow was generated, deduct credits
+      if (result.workflow && result.success) {
+        logger.info('Workflow generated, deducting credits', { userId });
+        await creditService.deductCreditsForWorkflow(userId, 'workflow_gen_' + Date.now(), 1);
+      }
+
+      // Get updated credit balance
+      const creditInfo = await creditService.getUserCredits(userId);
+      creditsRemaining = creditInfo.credits;
+
+    } catch (creditError) {
+      logger.error('Error handling credits:', creditError);
+      // Try to get credits without deduction
       try {
-        // Import credit service to get current credits
         const { creditService } = await import('../services/credit/creditService');
         const creditInfo = await creditService.getUserCredits(userId);
         creditsRemaining = creditInfo.credits;
-      } catch (creditError) {
-        logger.error('Error fetching user credits:', creditError);
+      } catch (fallbackError) {
+        logger.error('Error fetching credits fallback:', fallbackError);
       }
     }
 
@@ -113,6 +128,32 @@ router.get('/chat/health', (req, res) => {
     message: 'Enhanced NodePilot AI chat is running',
     features: ['intent_classification', 'conversation_handling', 'workflow_generation']
   });
+});
+
+// Get user credits endpoint for frontend
+router.get('/credits', async (req, res) => {
+  try {
+    const userId = req.headers.authorization?.replace('Bearer ', '') || req.query.userId;
+
+    if (!userId) {
+      return res.status(400).json({ error: 'User ID is required' });
+    }
+
+    const { creditService } = await import('../services/credit/creditService');
+    const creditInfo = await creditService.getUserCredits(userId as string);
+
+    return res.status(200).json({
+      credits: creditInfo.credits,
+      plan: creditInfo.plan,
+      trialStatus: {
+        isTrialActive: creditInfo.isTrialActive,
+        trialStart: creditInfo.trialStart
+      }
+    });
+  } catch (error) {
+    logger.error('Error fetching user credits:', error);
+    return res.status(500).json({ error: 'Failed to fetch credits' });
+  }
 });
 
 export default router;

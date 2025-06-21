@@ -375,13 +375,9 @@ Output: Optimized prompt for workflow generation`
       // Generate conversational response using OpenAI
       const conversationResponse = await this.generateWorkflowExplanation(request.userPrompt, workflow);
 
-      // Save to workflow_generations table and deduct credits
+      // Save to workflow_generations table (credits handled in route)
       if (workflow) {
         try {
-          // Deduct credits first
-          const { creditService } = await import('../credit/creditService');
-          await creditService.deductCreditsForWorkflow(request.userId, 'workflow_gen_' + Date.now(), 1);
-
           // Save workflow generation
           const { data: workflowGeneration, error } = await this.supabase
             .from('workflow_generations')
@@ -403,7 +399,7 @@ Output: Optimized prompt for workflow generation`
             logger.info('Workflow generation saved successfully', { id: workflowGeneration.id });
           }
         } catch (saveError) {
-          logger.error('Error saving workflow generation or deducting credits:', saveError);
+          logger.error('Error saving workflow generation:', saveError);
         }
       }
 
