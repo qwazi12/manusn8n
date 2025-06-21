@@ -331,7 +331,7 @@ Output: Optimized prompt for workflow generation`
       const fullPrompt = `${workflowPrompt}\n\nOptimized Request: ${optimizedPrompt}`;
 
       const response = await this.anthropic.messages.create({
-        model: 'claude-sonnet-4-20250514', // Using Claude Sonnet 4
+        model: 'claude-3-5-sonnet-20241022', // Using Claude 3.5 Sonnet (stable)
         max_tokens: 4000,
         messages: [
           {
@@ -378,15 +378,20 @@ Output: Optimized prompt for workflow generation`
       // Save to workflow_generations table (credits handled in route)
       if (workflow) {
         try {
+          // Translate Clerk ID to Supabase UUID for consistent storage
+          const { SupabaseService } = await import('../database/supabaseService');
+          const supabaseService = SupabaseService.getInstance();
+          const supabaseUserId = await supabaseService.getSupabaseUserIdFromClerkId(request.userId);
+
           // Save workflow generation
           const { data: workflowGeneration, error } = await this.supabase
             .from('workflow_generations')
             .insert({
-              user_id: request.userId,
+              user_id: supabaseUserId, // Use Supabase UUID consistently
               original_prompt: request.userPrompt,
               optimized_prompt: optimizedPrompt,
               workflow_data: workflow,
-              generation_method: 'claude_sonnet_4',
+              generation_method: 'claude_3_5_sonnet',
               success: true,
               credits_used: 1
             })
@@ -396,7 +401,11 @@ Output: Optimized prompt for workflow generation`
           if (error) {
             logger.error('Error saving workflow generation:', error);
           } else {
-            logger.info('Workflow generation saved successfully', { id: workflowGeneration.id });
+            logger.info('Workflow generation saved successfully', {
+              id: workflowGeneration.id,
+              clerkUserId: request.userId,
+              supabaseUserId
+            });
           }
         } catch (saveError) {
           logger.error('Error saving workflow generation:', saveError);

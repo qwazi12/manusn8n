@@ -78,25 +78,33 @@ router.post('/chat/message', async (req, res) => {
     // Handle credit deduction and get remaining credits
     let creditsRemaining;
     try {
+      // Translate Clerk ID to Supabase UUID for credit operations
+      const { SupabaseService } = await import('../services/database/supabaseService');
+      const supabaseService = SupabaseService.getInstance();
+      const supabaseUserId = await supabaseService.getSupabaseUserIdFromClerkId(userId);
+
       // Always get current credits to display
       const { creditService } = await import('../services/credit/creditService');
 
       // Deduct 1 credit for EVERY chat interaction (as requested)
       if (result.success) {
-        logger.info('Chat interaction, deducting 1 credit', { userId, hasWorkflow: !!result.workflow });
-        await creditService.deductCreditsForWorkflow(userId, 'chat_interaction_' + Date.now(), 1);
+        logger.info('Chat interaction, deducting 1 credit', { clerkId: userId, supabaseUserId, hasWorkflow: !!result.workflow });
+        await creditService.deductCreditsForWorkflow(supabaseUserId, 'chat_interaction_' + Date.now(), 1);
       }
 
       // Get updated credit balance
-      const creditInfo = await creditService.getUserCredits(userId);
+      const creditInfo = await creditService.getUserCredits(supabaseUserId);
       creditsRemaining = creditInfo.credits;
 
     } catch (creditError) {
       logger.error('Error handling credits:', creditError);
       // Try to get credits without deduction
       try {
+        const { SupabaseService } = await import('../services/database/supabaseService');
+        const supabaseService = SupabaseService.getInstance();
+        const supabaseUserId = await supabaseService.getSupabaseUserIdFromClerkId(userId);
         const { creditService } = await import('../services/credit/creditService');
-        const creditInfo = await creditService.getUserCredits(userId);
+        const creditInfo = await creditService.getUserCredits(supabaseUserId);
         creditsRemaining = creditInfo.credits;
       } catch (fallbackError) {
         logger.error('Error fetching credits fallback:', fallbackError);
@@ -133,14 +141,19 @@ router.get('/chat/health', (req, res) => {
 // Get user credits endpoint for frontend
 router.get('/credits', async (req, res) => {
   try {
-    const userId = req.headers.authorization?.replace('Bearer ', '') || req.query.userId;
+    const clerkUserId = req.headers.authorization?.replace('Bearer ', '') || req.query.userId;
 
-    if (!userId) {
+    if (!clerkUserId) {
       return res.status(400).json({ error: 'User ID is required' });
     }
 
+    // Translate Clerk ID to Supabase UUID
+    const { SupabaseService } = await import('../services/database/supabaseService');
+    const supabaseService = SupabaseService.getInstance();
+    const supabaseUserId = await supabaseService.getSupabaseUserIdFromClerkId(clerkUserId as string);
+
     const { creditService } = await import('../services/credit/creditService');
-    const creditInfo = await creditService.getUserCredits(userId as string);
+    const creditInfo = await creditService.getUserCredits(supabaseUserId);
 
     return res.status(200).json({
       credits: creditInfo.credits,

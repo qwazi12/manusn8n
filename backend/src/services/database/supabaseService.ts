@@ -62,6 +62,27 @@ class SupabaseService {
     }
   }
 
+  // Helper function to translate Clerk ID to Supabase UUID
+  async getSupabaseUserIdFromClerkId(clerkId: string): Promise<string> {
+    try {
+      const { data, error } = await this.client
+        .from('users')
+        .select('id')
+        .eq('clerk_id', clerkId)
+        .single();
+
+      if (error || !data) {
+        throw new Error(`User not found for Clerk ID: ${clerkId}`);
+      }
+
+      logger.info('Translated Clerk ID to Supabase UUID', { clerkId, supabaseId: data.id });
+      return data.id;
+    } catch (error) {
+      logger.error('Error translating Clerk ID to Supabase UUID', { error, clerkId });
+      throw error;
+    }
+  }
+
   async updateUserCredits(userId: string, credits: number) {
     try {
       const { data, error } = await this.client
