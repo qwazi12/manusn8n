@@ -62,7 +62,7 @@ export async function GET() {
           credits_used,
           created_at
         `)
-        .eq('user_id', clerkUserId)
+        .eq('user_id', userId)
         .eq('success', true)
         .order('created_at', { ascending: false })
     ]);

@@ -81,10 +81,10 @@ router.post('/chat/message', async (req, res) => {
       // Always get current credits to display
       const { creditService } = await import('../services/credit/creditService');
 
-      // If workflow was generated, deduct credits
-      if (result.workflow && result.success) {
-        logger.info('Workflow generated, deducting credits', { userId });
-        await creditService.deductCreditsForWorkflow(userId, 'workflow_gen_' + Date.now(), 1);
+      // Deduct 1 credit for EVERY chat interaction (as requested)
+      if (result.success) {
+        logger.info('Chat interaction, deducting 1 credit', { userId, hasWorkflow: !!result.workflow });
+        await creditService.deductCreditsForWorkflow(userId, 'chat_interaction_' + Date.now(), 1);
       }
 
       // Get updated credit balance
