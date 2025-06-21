@@ -79,8 +79,7 @@ router.post('/chat/message', async (req, res) => {
     let creditsRemaining;
     try {
       // Translate Clerk ID to Supabase UUID for credit operations
-      const { SupabaseService } = await import('../services/database/supabaseService');
-      const supabaseService = SupabaseService.getInstance();
+      const { supabaseService } = await import('../services/database/supabaseService');
       const supabaseUserId = await supabaseService.getSupabaseUserIdFromClerkId(userId);
 
       // Always get current credits to display
@@ -100,8 +99,7 @@ router.post('/chat/message', async (req, res) => {
       logger.error('Error handling credits:', creditError);
       // Try to get credits without deduction
       try {
-        const { SupabaseService } = await import('../services/database/supabaseService');
-        const supabaseService = SupabaseService.getInstance();
+        const { supabaseService } = await import('../services/database/supabaseService');
         const supabaseUserId = await supabaseService.getSupabaseUserIdFromClerkId(userId);
         const { creditService } = await import('../services/credit/creditService');
         const creditInfo = await creditService.getUserCredits(supabaseUserId);
@@ -148,8 +146,7 @@ router.get('/credits', async (req, res) => {
     }
 
     // Translate Clerk ID to Supabase UUID
-    const { SupabaseService } = await import('../services/database/supabaseService');
-    const supabaseService = SupabaseService.getInstance();
+    const { supabaseService } = await import('../services/database/supabaseService');
     const supabaseUserId = await supabaseService.getSupabaseUserIdFromClerkId(clerkUserId as string);
 
     const { creditService } = await import('../services/credit/creditService');

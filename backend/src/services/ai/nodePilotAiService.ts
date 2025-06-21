@@ -379,8 +379,7 @@ Output: Optimized prompt for workflow generation`
       if (workflow) {
         try {
           // Translate Clerk ID to Supabase UUID for consistent storage
-          const { SupabaseService } = await import('../database/supabaseService');
-          const supabaseService = SupabaseService.getInstance();
+          const { supabaseService } = await import('../database/supabaseService');
           const supabaseUserId = await supabaseService.getSupabaseUserIdFromClerkId(request.userId);
 
           // Save workflow generation
