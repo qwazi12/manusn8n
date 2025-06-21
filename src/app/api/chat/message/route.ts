@@ -16,8 +16,32 @@ export async function POST(request: NextRequest) {
     }
     const userId = session.userId;
 
-    // 2. Get request body
-    const { message, conversationId } = await request.json();
+    // 2. Get request body (handle both JSON and FormData for file uploads)
+    let message: string;
+    let conversationId: string | undefined;
+    let files: File[] = [];
+
+    const contentType = request.headers.get('content-type');
+
+    if (contentType?.includes('multipart/form-data')) {
+      // Handle file uploads
+      const formData = await request.formData();
+      message = formData.get('message') as string;
+      conversationId = formData.get('conversationId') as string;
+
+      // Extract files
+      for (const [key, value] of formData.entries()) {
+        if (key.startsWith('file_') && value instanceof File) {
+          files.push(value);
+        }
+      }
+    } else {
+      // Handle regular JSON
+      const body = await request.json();
+      message = body.message;
+      conversationId = body.conversationId;
+    }
+
     if (!message) {
       return NextResponse.json({ error: 'Message is required' }, { status: 400 });
     }
@@ -44,7 +68,14 @@ export async function POST(request: NextRequest) {
       currentConversationId = newConversation.id;
     }
 
-    // 4. Save user message to conversation
+    // 4. Process files if any
+    let fileContext = '';
+    if (files.length > 0) {
+      fileContext = await processFiles(files);
+      message = `${message}\n\n[Files attached: ${files.map(f => f.name).join(', ')}]\n${fileContext}`;
+    }
+
+    // 5. Save user message to conversation
     const { error: userMsgError } = await supabase
       .from('conversation_messages')
       .insert({
@@ -52,6 +83,11 @@ export async function POST(request: NextRequest) {
         user_id: userId,
         role: 'user',
         content: message,
+        metadata: {
+          hasFiles: files.length > 0,
+          fileNames: files.map(f => f.name),
+          fileCount: files.length
+        }
       });
 
     if (userMsgError) {
@@ -124,4 +160,34 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
+}
+
+// Helper function to process uploaded files
+async function processFiles(files: File[]): Promise<string> {
+  const fileContents: string[] = [];
+
+  for (const file of files) {
+    try {
+      if (file.type.startsWith('text/') || file.name.endsWith('.txt') || file.name.endsWith('.md')) {
+        // Process text files
+        const text = await file.text();
+        fileContents.push(`--- Content of ${file.name} ---\n${text}\n--- End of ${file.name} ---`);
+      } else if (file.type === 'application/json') {
+        // Process JSON files
+        const text = await file.text();
+        fileContents.push(`--- JSON content of ${file.name} ---\n${text}\n--- End of ${file.name} ---`);
+      } else if (file.type.startsWith('image/')) {
+        // For images, just note the file info
+        fileContents.push(`--- Image file: ${file.name} (${file.type}, ${Math.round(file.size/1024)}KB) ---\nNote: Image content analysis not yet implemented.`);
+      } else {
+        // For other files, just note the file info
+        fileContents.push(`--- File: ${file.name} (${file.type}, ${Math.round(file.size/1024)}KB) ---\nNote: File content analysis not yet implemented for this file type.`);
+      }
+    } catch (error) {
+      console.error(`Error processing file ${file.name}:`, error);
+      fileContents.push(`--- Error processing ${file.name} ---\nCould not read file content.`);
+    }
+  }
+
+  return fileContents.join('\n\n');
 }

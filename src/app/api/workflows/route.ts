@@ -30,32 +30,79 @@ export async function GET() {
 
     const supabaseUserId = userData.id;
 
-    // 4. Fetch user's workflows
-    const { data: workflows, error: workflowsError } = await supabaseAdmin
-      .from('workflows')
-      .select(`
-        id,
-        title,
-        description,
-        prompt,
-        workflow_json,
-        status,
-        credits_used,
-        tags,
-        is_public,
-        created_at,
-        updated_at
-      `)
-      .eq('user_id', supabaseUserId)
-      .order('created_at', { ascending: false });
+    // 4. Fetch user's workflows from both tables
+    const [workflowsResult, generationsResult] = await Promise.all([
+      // Get from workflows table (old system)
+      supabaseAdmin
+        .from('workflows')
+        .select(`
+          id,
+          title,
+          description,
+          prompt,
+          workflow_json,
+          status,
+          credits_used,
+          tags,
+          is_public,
+          created_at,
+          updated_at
+        `)
+        .eq('user_id', supabaseUserId)
+        .order('created_at', { ascending: false }),
 
-    if (workflowsError) {
-      console.error('Error fetching workflows:', workflowsError);
+      // Get from workflow_generations table (new enhanced system)
+      supabaseAdmin
+        .from('workflow_generations')
+        .select(`
+          id,
+          original_prompt,
+          workflow_data,
+          success,
+          credits_used,
+          created_at
+        `)
+        .eq('user_id', clerkUserId)
+        .eq('success', true)
+        .order('created_at', { ascending: false })
+    ]);
+
+    const workflows = workflowsResult.data || [];
+    const generations = generationsResult.data || [];
+
+    // Convert workflow_generations to workflows format
+    const convertedGenerations = generations.map(gen => ({
+      id: gen.id,
+      title: `Generated: ${gen.original_prompt.substring(0, 50)}...`,
+      description: `AI-generated workflow from enhanced system`,
+      prompt: gen.original_prompt,
+      workflow_json: gen.workflow_data,
+      status: 'completed',
+      credits_used: gen.credits_used,
+      tags: ['ai-generated'],
+      is_public: false,
+      created_at: gen.created_at,
+      updated_at: gen.created_at,
+      source: 'enhanced_ai'
+    }));
+
+    // Combine and sort by creation date
+    const allWorkflows = [...workflows.map(w => ({...w, source: 'legacy'})), ...convertedGenerations]
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+    if (workflowsResult.error) {
+      console.error('Error fetching workflows:', workflowsResult.error);
       return NextResponse.json({ error: 'Failed to fetch workflows' }, { status: 500 });
     }
 
+    if (generationsResult.error) {
+      console.error('Error fetching workflow generations:', generationsResult.error);
+      // Don't fail completely, just log the error
+      console.warn('Continuing without enhanced AI workflows');
+    }
+
     // 5. Format workflows for frontend
-    const formattedWorkflows = workflows?.map(workflow => ({
+    const formattedWorkflows = allWorkflows?.map(workflow => ({
       id: workflow.id,
       title: workflow.title || 'Untitled Workflow',
       description: workflow.description || workflow.prompt?.substring(0, 100) + '...',

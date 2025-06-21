@@ -110,16 +110,38 @@ export default function DashboardPage() {
 
     try {
       // Call the Next.js API route (which proxies to the backend)
-      const response = await fetch('/api/chat/message', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          message: message,
-          conversationId: currentConversationId,
-        }),
-      });
+      let response: Response;
+
+      if (files.length > 0) {
+        // Send as FormData if files are attached
+        const formData = new FormData();
+        formData.append('message', message);
+        if (currentConversationId) {
+          formData.append('conversationId', currentConversationId);
+        }
+
+        // Add files to FormData
+        files.forEach((file, index) => {
+          formData.append(`file_${index}`, file);
+        });
+
+        response = await fetch('/api/chat/message', {
+          method: 'POST',
+          body: formData,
+        });
+      } else {
+        // Send as JSON if no files
+        response = await fetch('/api/chat/message', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            message: message,
+            conversationId: currentConversationId,
+          }),
+        });
+      }
 
       const data = await response.json();
 
