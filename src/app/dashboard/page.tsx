@@ -143,11 +143,21 @@ export default function DashboardPage() {
         });
       }
 
-      const data = await response.json();
-
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to process message');
+        // Try to parse error response as JSON, fallback to text
+        let errorMessage = 'Failed to process message';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorData.message || errorMessage;
+        } catch {
+          // If JSON parsing fails, get text response
+          const errorText = await response.text();
+          errorMessage = errorText || `HTTP ${response.status}: ${response.statusText}`;
+        }
+        throw new Error(errorMessage);
       }
+
+      const data = await response.json();
 
       // Add assistant response
       const assistantMessage: Message = {
@@ -176,24 +186,33 @@ export default function DashboardPage() {
 
     } catch (error: any) {
       console.error('Error generating workflow:', error);
+      console.error('Error details:', {
+        message: error.message,
+        status: error.status,
+        stack: error.stack,
+        type: typeof error
+      });
 
       // Handle trial expiration errors
       if (error.status === 402) {
         try {
-          const errorData = await error.json();
-          if (errorData.upgrade_required) {
-            setTrialExpired(true);
-            const errorMessage: Message = {
-              role: 'assistant',
-              content: `❌ **${errorData.error}**
+          // Only try to parse JSON if error has a json method (it's a Response object)
+          if (typeof error.json === 'function') {
+            const errorData = await error.json();
+            if (errorData.upgrade_required) {
+              setTrialExpired(true);
+              const errorMessage: Message = {
+                role: 'assistant',
+                content: `❌ **${errorData.error}**
 
 ${errorData.message}
 
 [Click here to upgrade](/pricing)`,
-              timestamp: new Date()
-            };
-            setMessages(prev => [...prev, errorMessage]);
-            return;
+                timestamp: new Date()
+              };
+              setMessages(prev => [...prev, errorMessage]);
+              return;
+            }
           }
         } catch (parseError) {
           console.error('Error parsing error response:', parseError);
@@ -227,7 +246,7 @@ Please try again or contact support if the issue persists.`,
             {messages.length > 0 && (
               <button
                 onClick={startNewConversation}
-                className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                className="mt-4 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
               >
                 🆕 New Chat
               </button>
