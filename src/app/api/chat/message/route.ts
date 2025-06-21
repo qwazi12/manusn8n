@@ -96,6 +96,11 @@ export async function POST(request: NextRequest) {
 
     // 5. Call the backend Express server enhanced chat endpoint
     const backendUrl = process.env.BACKEND_URL || 'https://manusn8n-production.up.railway.app';
+    console.log('Calling backend:', `${backendUrl}/api/chat/message`, { userId, messageLength: message.length });
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
+
     const response = await fetch(`${backendUrl}/api/chat/message`, {
       method: 'POST',
       headers: {
@@ -106,17 +111,36 @@ export async function POST(request: NextRequest) {
         userId,
         conversationId: currentConversationId,
       }),
+      signal: controller.signal,
     });
 
-    const data = await response.json();
+    clearTimeout(timeoutId);
+
+    console.log('Backend response status:', response.status, response.statusText);
 
     if (!response.ok) {
-      console.error('Backend error:', data);
+      let errorMessage = `Backend error: ${response.status} ${response.statusText}`;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.error || errorData.details || errorMessage;
+        console.error('Backend error data:', errorData);
+      } catch {
+        const errorText = await response.text();
+        errorMessage = errorText || errorMessage;
+        console.error('Backend error text:', errorText);
+      }
       return NextResponse.json(
-        { error: data.error || 'Failed to process message' },
+        { error: errorMessage },
         { status: response.status }
       );
     }
+
+    const data = await response.json();
+    console.log('Backend response data:', {
+      success: data.success,
+      hasWorkflow: !!data.workflow,
+      creditsRemaining: data.creditsRemaining
+    });
 
     // 6. Save assistant response to conversation
     if (data.conversationResponse) {

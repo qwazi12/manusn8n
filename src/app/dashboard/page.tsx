@@ -269,7 +269,7 @@ Please try again or contact support if the issue persists.`,
                   <div
                     className={`max-w-[80%] p-3 rounded-lg ${
                       message.role === 'user'
-                        ? 'bg-blue-500 text-white'
+                        ? 'bg-primary text-white'
                         : 'bg-white border border-gray-200'
                     }`}
                   >
@@ -288,7 +288,7 @@ Please try again or contact support if the issue persists.`,
                             navigator.clipboard.writeText(JSON.stringify(message.workflow, null, 2));
                             alert('Workflow JSON copied to clipboard!');
                           }}
-                          className="text-blue-600 hover:text-blue-800 mr-2"
+                          className="text-primary hover:text-primary/80 mr-2"
                         >
                           📋 Copy JSON
                         </button>
@@ -317,7 +317,7 @@ Please try again or contact support if the issue persists.`,
                 <div className="flex justify-start">
                   <div className="bg-white border border-gray-200 p-3 rounded-lg">
                     <div className="flex items-center space-x-2">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
                       <span className="text-sm text-gray-600">NodePilot is thinking...</span>
                     </div>
                   </div>
