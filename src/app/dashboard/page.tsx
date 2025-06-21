@@ -37,7 +37,7 @@ export default function DashboardPage() {
   const fetchUserCredits = async () => {
     try {
       setCreditsLoading(true);
-      const response = await fetch('/api/user-credits');
+      const response = await fetch('/api/credits');
       if (response.ok) {
         const data = await response.json();
         setUserCredits(data.credits);
@@ -67,15 +67,14 @@ export default function DashboardPage() {
     setIsLoading(true);
 
     try {
-      // Call the enhanced chat API
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://manusn8n-production.up.railway.app'}/api/chat/message`, {
+      // Call the Next.js API route (which proxies to the backend)
+      const response = await fetch('/api/chat/message', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           message: message,
-          userId: user?.id,
         }),
       });
 

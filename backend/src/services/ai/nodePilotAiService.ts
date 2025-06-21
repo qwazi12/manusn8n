@@ -342,24 +342,35 @@ Output: Optimized prompt for workflow generation`
       });
 
       const workflowContent = response.content[0]?.type === 'text' ? response.content[0].text : '';
-      
+
+      // Log the raw response for debugging
+      logger.info('Claude raw response:', { content: workflowContent.substring(0, 500) + '...' });
+
       // Parse workflow JSON
       let workflow;
       try {
         const jsonMatch = workflowContent.match(/```json\n([\s\S]*?)\n```/);
         if (jsonMatch) {
+          logger.info('Found JSON in code block');
           workflow = JSON.parse(jsonMatch[1]);
         } else {
           // Try to find JSON in the response
           const jsonStart = workflowContent.indexOf('{');
           const jsonEnd = workflowContent.lastIndexOf('}') + 1;
           if (jsonStart !== -1 && jsonEnd > jsonStart) {
-            workflow = JSON.parse(workflowContent.substring(jsonStart, jsonEnd));
+            logger.info('Found JSON in response body');
+            const jsonString = workflowContent.substring(jsonStart, jsonEnd);
+            workflow = JSON.parse(jsonString);
+          } else {
+            logger.warn('No JSON found in Claude response');
           }
         }
       } catch (parseError) {
         logger.error('Failed to parse workflow JSON:', parseError);
+        logger.error('Raw content that failed to parse:', workflowContent);
       }
+
+      logger.info('Parsed workflow:', { hasWorkflow: !!workflow, workflowKeys: workflow ? Object.keys(workflow) : [] });
 
       // Generate conversational response using OpenAI
       const conversationResponse = await this.generateWorkflowExplanation(request.userPrompt, workflow);
