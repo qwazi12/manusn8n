@@ -26,6 +26,10 @@ const faqs = [
   {
     question: "What kind of support does Nodepilot provide?",
     answer: "Nodepilot provides comprehensive support including documentation, video tutorials, a community forum, and dedicated customer support. We also offer premium support plans for enterprises with more complex needs."
+  },
+  {
+    question: "What happens after my trial ends?",
+    answer: "After your trial ends, you can choose from our flexible pricing plans to continue using NodePilot. Purchase additional credits or subscribe to a plan that fits your workflow generation needs."
   }
 ];
 

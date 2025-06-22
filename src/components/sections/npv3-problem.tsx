@@ -4,27 +4,27 @@ import { Database, Clock, Shield } from "lucide-react";
 
 const problems = [
   {
-    title: "Data Overload",
-    description: "Businesses struggle to make sense of vast amounts of complex data, missing out on valuable insights that could drive growth and innovation.",
+    title: "Complex Node Configuration",
+    description: "n8n offers powerful automation capabilities, but setting up workflows requires deep understanding of node parameters, data mapping, and connection logic. New users often spend hours figuring out what experts can configure in minutes.",
     icon: <Database className="h-8 w-8 text-primary" />
   },
   {
-    title: "Slow Decision-Making", 
-    description: "Traditional data processing methods are too slow, causing businesses to lag behind market changes and miss crucial opportunities.",
+    title: "Time-Consuming Development",
+    description: "Building workflows from scratch involves researching documentation, testing connections, debugging errors, and optimizing performance. What should be quick automation setup becomes lengthy development projects.",
     icon: <Clock className="h-8 w-8 text-primary" />
   },
   {
-    title: "Data Security Concerns",
-    description: "With increasing cyber threats, businesses worry about the safety of their sensitive information when adopting new technologies.",
+    title: "Technical Barriers",
+    description: "Advanced features like error handling, data transformation, and API integrations require programming knowledge that many users don't possess, limiting their ability to create robust automations.",
     icon: <Shield className="h-8 w-8 text-primary" />
   }
 ];
 
 export default function NPV3Problem() {
   return (
-    <Section 
-      title="Problem" 
-      subtitle="Manually entering your data is a hassle."
+    <Section
+      title="Problem"
+      subtitle="Creating n8n workflows manually is complex and time-consuming."
       className="bg-muted/30"
     >
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">

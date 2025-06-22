@@ -24,13 +24,13 @@ export default function NPV3Hero() {
         <div className="flex w-full max-w-2xl flex-col space-y-4 overflow-hidden pt-8">
           <h1 className="text-center text-4xl font-medium leading-tight text-foreground sm:text-5xl md:text-6xl">
             <span className="inline-block px-1 md:px-2 text-balance font-semibold">
-              Automate
+              Generate
             </span>
             <span className="inline-block px-1 md:px-2 text-balance font-semibold">
-              your
+              n8n
             </span>
             <span className="inline-block px-1 md:px-2 text-balance font-semibold">
-              workflow
+              workflows
             </span>
             <span className="inline-block px-1 md:px-2 text-balance font-semibold">
               with
@@ -40,7 +40,7 @@ export default function NPV3Hero() {
             </span>
           </h1>
           <p className="mx-auto max-w-xl text-center text-lg leading-7 text-muted-foreground sm:text-xl sm:leading-9 text-balance">
-            No matter what problem you have, our AI can help you solve it.
+            Transform your automation ideas into ready-to-use n8n workflows through natural language. No complex node configuration required.
           </p>
         </div>
 
@@ -58,16 +58,11 @@ export default function NPV3Hero() {
             <SignInButton mode="modal">
               <Button size="lg" className="w-full sm:w-auto text-background flex gap-2">
                 <Icons.sparkles className="h-4 w-4" />
-                Get Started Free
+                Start Here
               </Button>
             </SignInButton>
           </SignedOut>
         </div>
-
-        {/* Subtitle */}
-        <p className="mt-5 text-sm text-muted-foreground text-center">
-          Your first 3 workflows are free — no sign-up required.
-        </p>
 
         {/* Hero Video */}
         <div className="relative mx-auto flex w-full items-center justify-center">

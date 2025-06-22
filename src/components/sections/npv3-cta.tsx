@@ -24,7 +24,7 @@ export default function NPV3CTA() {
           <SignInButton mode="modal">
             <Button size="lg" className="w-full sm:w-auto text-background flex gap-2">
               <Icons.sparkles className="h-4 w-4" />
-              Get started for free
+              Start Here
             </Button>
           </SignInButton>
         </SignedOut>

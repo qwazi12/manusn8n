@@ -6,22 +6,25 @@ import Image from "next/image";
 const steps = [
   {
     number: "1",
-    title: "Upload Your Data",
-    description: "Simply upload your data to our secure platform. We support various file formats and data types to ensure a seamless integration with your existing systems.",
+    title: "Automate",
+    subtitle: "Streamline Your Workflow with AI",
+    description: "Leverage the power of AI to create seamless n8n automation scripts that save time and boost productivity. Simply describe your automation needs in natural language.",
     icon: <Upload className="h-8 w-8 text-primary" />,
     image: "/dashboard.png"
   },
   {
-    number: "2", 
-    title: "Click Start",
-    description: "Our advanced AI algorithms automatically process and analyze your data, extracting valuable insights and patterns that would be difficult to identify manually.",
+    number: "2",
+    title: "Design",
+    subtitle: "Build Custom Workflows Effortlessly",
+    description: "Describe what you want to automate in plain English. Our intelligent AI designs n8n workflows tailored to your specific needs without writing a single line of code. Get complete workflow JSON ready for import.",
     icon: <Play className="h-8 w-8 text-primary" />,
     image: "/dashboard.png"
   },
   {
     number: "3",
-    title: "Get Actionable Insights",
-    description: "Receive clear, actionable insights and recommendations based on the AI analysis. Use these insights to make data-driven decisions and improve your business strategies.",
+    title: "Optimize",
+    subtitle: "Enhance Efficiency with Smart Suggestions",
+    description: "Our AI provides intelligent recommendations to optimize your n8n workflows for maximum efficiency and performance, including error handling and best practices.",
     icon: <TrendingUp className="h-8 w-8 text-primary" />,
     image: "/dashboard.png"
   }
@@ -29,9 +32,9 @@ const steps = [
 
 export default function NPV3HowItWorks() {
   return (
-    <Section 
-      title="How it works" 
-      subtitle="Just 3 steps to get started"
+    <Section
+      title="How It Works"
+      subtitle="Step-by-Step Process"
       className="bg-muted/30"
     >
       <div className="space-y-16">
@@ -47,6 +50,7 @@ export default function NPV3HowItWorks() {
                 </div>
               </div>
               <h3 className="text-2xl font-bold">{step.title}</h3>
+              <h4 className="text-lg font-semibold text-primary">{step.subtitle}</h4>
               <p className="text-lg text-muted-foreground leading-relaxed">
                 {step.description}
               </p>
