@@ -9,19 +9,27 @@ export default function PrivacyPolicyPage() {
 
       <div className="p-6">
         <div>
-          <p>Our Privacy Policy was last updated on <strong>27/03/2025</strong>.</p>
+          <p>Last updated: <strong>June 22, 2025</strong></p>
 
-          <p>At <strong>NodePilot</strong>, one of our main priorities is the privacy of our visitors. This Privacy Policy document contains types of information that is collected and recorded by <strong>NodePilot</strong> and how we use it.</p>
+          <p className="mt-4">At NodePilot, we are committed to protecting your privacy and ensuring transparency about how we collect, use, and protect your information. This Privacy Policy explains our practices regarding the information we collect when you use our n8n workflow generation service.</p>
 
-          <p>If you have additional questions or require more information about our Privacy Policy, do not hesitate to contact us at <a href="mailto:nodepilotdev@gmail.com" className="text-primary hover:underline">nodepilotdev@gmail.com</a>.</p>
+          <h2 className="text-xl font-bold mt-6 mb-2"><strong>What NodePilot Does</strong></h2>
 
-          <p>This Privacy Policy applies only to our online activities and is valid for visitors to our website with regards to the information that they shared and/or collected on <a href="https://nodepilot.dev" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">https://nodepilot.dev</a>. This policy is not applicable to any information collected offline or via channels other than this website.</p>
-
-          <h2 className="text-xl font-bold mt-6 mb-2"><strong>Consent</strong></h2>
-
-          <p>By using our website, you hereby consent to our Privacy Policy and agree to its terms.</p>
+          <p>NodePilot is an AI-powered service that generates n8n workflow automation scripts. We use artificial intelligence to convert your natural language descriptions into ready-to-use n8n workflow JSON files.</p>
 
           <h2 className="text-xl font-bold mt-6 mb-2"><strong>Information We Collect</strong></h2>
+
+          <p><strong>Account Information:</strong> When you create an account, we collect your email address, name, and any other information you provide during registration.</p>
+
+          <p className="mt-4"><strong>Workflow Generation Data:</strong> We collect and process the text descriptions you provide to generate n8n workflows. This includes your automation requirements, desired integrations, and any specific instructions you provide.</p>
+
+          <p className="mt-4"><strong>Generated Content:</strong> We store the n8n workflow JSON files we generate for you, along with explanations and documentation we provide.</p>
+
+          <p className="mt-4"><strong>Credit Usage Data:</strong> We track your credit consumption, including when credits are used, for which workflow generations, and your remaining credit balance.</p>
+
+          <p className="mt-4"><strong>Technical Data:</strong> We collect IP addresses, browser information, device information, and usage analytics to improve our service and ensure security.</p>
+
+          <h2 className="text-xl font-bold mt-6 mb-2"><strong>How We Use Your Information</strong></h2>
 
           <p>The personal information that you are asked to provide, and the reasons why you are asked to provide it, will be made clear to you at the point we ask you to provide your personal information.</p>
 
@@ -31,29 +39,51 @@ export default function PrivacyPolicyPage() {
 
           <h2 className="text-xl font-bold mt-6 mb-2"><strong>How We Use Your Information</strong></h2>
 
-          <p>We use the information we collect in various ways, including to:</p>
+          <p><strong>Workflow Generation:</strong> We use your input descriptions to generate n8n workflows using AI models including OpenAI and Claude (Anthropic) services.</p>
 
-          <ul className="list-disc pl-6 my-4 space-y-1">
-            <li>Provide, operate, and maintain our website.</li>
-            <li>Improve, personalize, and expand our website.</li>
-            <li>Understand and analyze how you use our website.</li>
-            <li>Develop new products, services, features, and functionality.</li>
-            <li>Communicate with you, either directly or through one of our partners, including for customer service, to provide you with updates and other information relating to the website, and for marketing and promotional purposes.</li>
-            <li>Send you emails.</li>
-            <li>Find and prevent fraud.</li>
-          </ul>
+          <p className="mt-4"><strong>Service Improvement:</strong> We analyze usage patterns to improve our AI models and service quality.</p>
 
-          <h2 className="text-xl font-bold mt-6 mb-2"><strong>Log Files</strong></h2>
+          <p className="mt-4"><strong>Account Management:</strong> We use your information to manage your account, process payments, and provide customer support.</p>
 
-          <p><strong>NodePilot</strong> follows a standard procedure of using log files. These files log visitors when they visit websites. All hosting companies do this as part of hosting services' analytics.</p>
+          <p className="mt-4"><strong>Communication:</strong> We may send you service-related emails, updates about your account, and important notices about our service.</p>
 
-          <p>The information collected by log files includes internet protocol (IP) addresses, browser type, Internet Service Provider (ISP), date and time stamp, referring/exit pages, and possibly the number of clicks. These are not linked to any information that is personally identifiable. The purpose of the information is for analyzing trends, administering the site, tracking users' movement on the website, and gathering demographic information.</p>
+          <h2 className="text-xl font-bold mt-6 mb-2"><strong>Third-Party AI Services</strong></h2>
 
-          {/* More sections would go here */}
+          <p>NodePilot uses third-party AI services to generate workflows:</p>
 
-          <p className="mt-6">
-            <strong>Note:</strong> This is a simplified version of the privacy policy. For the complete version, please visit the actual website.
-          </p>
+          <p className="mt-4"><strong>OpenAI:</strong> We use OpenAI's models for conversation handling and intent classification. Your data may be processed by OpenAI according to their privacy policy.</p>
+
+          <p className="mt-4"><strong>Anthropic (Claude):</strong> We use Claude models for n8n workflow generation. Your workflow descriptions may be processed by Anthropic according to their privacy policy.</p>
+
+          <p className="mt-4"><strong>Data Sharing:</strong> We only share your workflow descriptions with these AI services for the purpose of generating your requested workflows. We do not share your personal information beyond what is necessary for service operation.</p>
+
+          <h2 className="text-xl font-bold mt-6 mb-2"><strong>Data Retention</strong></h2>
+
+          <p><strong>Account Data:</strong> We retain your account information as long as your account is active.</p>
+
+          <p className="mt-4"><strong>Workflow Data:</strong> We retain your generated workflows and descriptions to provide ongoing service and support.</p>
+
+          <p className="mt-4"><strong>Credit History:</strong> We maintain records of credit usage for billing and account management purposes.</p>
+
+          <h2 className="text-xl font-bold mt-6 mb-2"><strong>Your Rights</strong></h2>
+
+          <p><strong>Access:</strong> You can access your account information and generated workflows through your dashboard.</p>
+
+          <p className="mt-4"><strong>Deletion:</strong> You can request deletion of your account and associated data by contacting us.</p>
+
+          <p className="mt-4"><strong>Correction:</strong> You can update your account information at any time through your account settings.</p>
+
+          <h2 className="text-xl font-bold mt-6 mb-2"><strong>Security</strong></h2>
+
+          <p>We implement appropriate technical and organizational measures to protect your information against unauthorized access, alteration, disclosure, or destruction.</p>
+
+          <h2 className="text-xl font-bold mt-6 mb-2"><strong>Contact Us</strong></h2>
+
+          <p>If you have questions about this Privacy Policy, please contact us at <a href="mailto:nodepilotdev@gmail.com" className="text-primary hover:underline">nodepilotdev@gmail.com</a>.</p>
+
+          <h2 className="text-xl font-bold mt-6 mb-2"><strong>Changes to This Policy</strong></h2>
+
+          <p>We may update this Privacy Policy from time to time. We will notify you of any material changes by posting the new policy on our website.</p>
         </div>
       </div>
     </div>
