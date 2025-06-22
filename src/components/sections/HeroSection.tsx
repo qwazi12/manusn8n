@@ -116,7 +116,7 @@ function HeroCTA() {
           </SignInButton>
         </SignedOut>
         <Button variant="outline" size="lg" asChild className="w-full sm:w-auto">
-          <Link href="https://discord.gg/VNHHPQap" target="_blank" rel="noopener noreferrer">
+          <Link href="https://discord.gg/FJDnUQjP" target="_blank" rel="noopener noreferrer">
             Join Community
           </Link>
         </Button>

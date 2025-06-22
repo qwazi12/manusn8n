@@ -51,7 +51,7 @@ export function DiscordCTASection() {
                 className="mt-6 text-background hover:scale-105 transition-transform duration-200"
               >
                 <Link
-                  href="https://discord.gg/VNHHPQap"
+                  href="https://discord.gg/FJDnUQjP"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2"

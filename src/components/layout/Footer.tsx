@@ -37,7 +37,7 @@ const footerSections = [
     links: [
       {
         text: "Join Discord",
-        href: "https://discord.gg/VNHHPQap",
+        href: "https://discord.gg/FJDnUQjP",
         icon: <MessageCircle className="h-4 w-4" />,
         external: true
       },
