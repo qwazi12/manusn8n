@@ -5,7 +5,6 @@ import Image from "next/image";
 
 const steps = [
   {
-    number: "1",
     title: "Automate",
     subtitle: "Streamline Your Workflow with AI",
     description: "Leverage the power of AI to create seamless n8n automation scripts that save time and boost productivity. Simply describe your automation needs in natural language.",
@@ -13,7 +12,6 @@ const steps = [
     image: "/dashboard.png"
   },
   {
-    number: "2",
     title: "Design",
     subtitle: "Build Custom Workflows Effortlessly",
     description: "Describe what you want to automate in plain English. Our intelligent AI designs n8n workflows tailored to your specific needs without writing a single line of code. Get complete workflow JSON ready for import.",
@@ -21,7 +19,6 @@ const steps = [
     image: "/dashboard.png"
   },
   {
-    number: "3",
     title: "Optimize",
     subtitle: "Enhance Efficiency with Smart Suggestions",
     description: "Our AI provides intelligent recommendations to optimize your n8n workflows for maximum efficiency and performance, including error handling and best practices.",
@@ -42,9 +39,6 @@ export default function NPV3HowItWorks() {
           <div key={index} className={`flex flex-col ${index % 2 === 0 ? 'lg:flex-row' : 'lg:flex-row-reverse'} items-center gap-12`}>
             <div className="flex-1 space-y-4">
               <div className="flex items-center gap-4">
-                <div className="flex items-center justify-center w-12 h-12 rounded-full bg-primary text-primary-foreground font-bold text-xl">
-                  {step.number}
-                </div>
                 <div className="p-2 rounded-lg bg-primary/10">
                   {step.icon}
                 </div>

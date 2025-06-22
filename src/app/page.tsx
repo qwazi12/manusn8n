@@ -17,9 +17,9 @@ export default function Home() {
       <NPV3Problem />
       <NPV3Features />
       <NPV3HowItWorks />
+      <PricingSection />
       <NPV3FAQ />
       <NPV3Blog />
-      <PricingSection />
       <ContactSection />
       <NPV3CTA />
     </div>
