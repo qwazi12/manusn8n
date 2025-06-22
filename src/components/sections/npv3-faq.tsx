@@ -54,8 +54,8 @@ export default function NPV3FAQ() {
       </div>
       <h4 className="mb-12 text-center text-sm font-medium tracking-tight text-foreground/80">
         Still have questions? Email us at{" "}
-        <a href="mailto:support@nodepilot.dev" className="underline">
-          support@nodepilot.dev
+        <a href="mailto:nodepilotdev@gmail.com" className="underline">
+          nodepilotdev@gmail.com
         </a>
       </h4>
     </Section>

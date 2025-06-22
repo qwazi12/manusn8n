@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import BlurFade from "@/components/magicui/blur-fade";
 import Link from "next/link";
 import { Mail, MessageCircle, Clock } from "lucide-react";
+import { useState } from "react";
 
 interface ContactMethodProps {
   icon: React.ReactNode;
@@ -30,6 +31,47 @@ function ContactMethod({ icon, title, description }: ContactMethodProps) {
 }
 
 export function ContactSection() {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitMessage, setSubmitMessage] = useState('');
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setSubmitMessage('');
+
+    const formData = new FormData(e.currentTarget);
+    const data = {
+      firstName: formData.get('firstName') as string,
+      lastName: formData.get('lastName') as string,
+      email: formData.get('email') as string,
+      subject: formData.get('subject') as string,
+      message: formData.get('message') as string,
+    };
+
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        setSubmitMessage('Message sent successfully! We will get back to you soon.');
+        (e.target as HTMLFormElement).reset();
+      } else {
+        setSubmitMessage(result.error || 'Failed to send message. Please try again.');
+      }
+    } catch (error) {
+      setSubmitMessage('Failed to send message. Please try again later.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <section id="contact" className="container mx-auto py-16 md:py-24">
       <BlurFade delay={0.2}>
@@ -51,7 +93,7 @@ export function ContactSection() {
             description={
               <Button variant="outline" size="lg" asChild>
                 <Link
-                  href="https://discord.gg/VNHHPQap"
+                  href="https://discord.gg/FJDnUQjP"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2"
@@ -92,39 +134,51 @@ export function ContactSection() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <form className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="firstName">First Name</Label>
-                    <Input id="firstName" placeholder="Your first name" />
+                    <Input id="firstName" name="firstName" placeholder="Your first name" required />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="lastName">Last Name</Label>
-                    <Input id="lastName" placeholder="Your last name" />
+                    <Input id="lastName" name="lastName" placeholder="Your last name" required />
                   </div>
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
-                  <Input id="email" type="email" placeholder="Your email address" />
+                  <Input id="email" name="email" type="email" placeholder="Your email address" required />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="subject">Subject</Label>
-                  <Input id="subject" placeholder="What is this regarding?" />
+                  <Input id="subject" name="subject" placeholder="What is this regarding?" required />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="message">Message</Label>
                   <Textarea
                     id="message"
+                    name="message"
                     placeholder="Tell us about your application needs..."
                     rows={4}
+                    required
                   />
                 </div>
 
-                <Button type="submit" className="w-full">
-                  Send Message
+                {submitMessage && (
+                  <div className={`p-3 rounded-md text-sm ${
+                    submitMessage.includes('successfully')
+                      ? 'bg-green-50 text-green-700 border border-green-200'
+                      : 'bg-red-50 text-red-700 border border-red-200'
+                  }`}>
+                    {submitMessage}
+                  </div>
+                )}
+
+                <Button type="submit" className="w-full" disabled={isSubmitting}>
+                  {isSubmitting ? 'Sending...' : 'Send Message'}
                 </Button>
               </form>
             </CardContent>

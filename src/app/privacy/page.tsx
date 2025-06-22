@@ -15,7 +15,7 @@ export default function PrivacyPolicyPage() {
 
           <p>If you have additional questions or require more information about our Privacy Policy, do not hesitate to contact us at <a href="mailto:nodepilotdev@gmail.com" className="text-primary hover:underline">nodepilotdev@gmail.com</a>.</p>
 
-          <p>This Privacy Policy applies only to our online activities and is valid for visitors to our website with regards to the information that they shared and/or collected on <a href="https://nodepilot.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">https://nodepilot.com</a>. This policy is not applicable to any information collected offline or via channels other than this website.</p>
+          <p>This Privacy Policy applies only to our online activities and is valid for visitors to our website with regards to the information that they shared and/or collected on <a href="https://nodepilot.dev" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">https://nodepilot.dev</a>. This policy is not applicable to any information collected offline or via channels other than this website.</p>
 
           <h2 className="text-xl font-bold mt-6 mb-2"><strong>Consent</strong></h2>
 

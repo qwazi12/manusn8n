@@ -11,14 +11,14 @@ export default function NPV3Hero() {
     <section className="relative">
       <div className="relative flex w-full flex-col items-center justify-start px-4 pt-32 sm:px-6 sm:pt-24 md:pt-32 lg:px-8">
         {/* Announcement Pill */}
-        <div className="flex w-auto items-center space-x-2 rounded-full bg-primary/20 px-2 py-1 ring-1 ring-accent whitespace-pre mb-8">
+        <Link href="/blog" className="flex w-auto items-center space-x-2 rounded-full bg-primary/20 px-2 py-1 ring-1 ring-accent whitespace-pre mb-8 hover:bg-primary/30 transition-colors">
           <div className="w-fit rounded-full bg-accent px-2 py-0.5 text-center text-xs font-medium text-primary sm:text-sm">
             📣 Announcement
           </div>
           <p className="text-xs font-medium text-primary sm:text-sm">
             Introducing NodePilot
           </p>
-        </div>
+        </Link>
 
         {/* Main Heading */}
         <div className="flex w-full max-w-2xl flex-col space-y-4 overflow-hidden pt-8">

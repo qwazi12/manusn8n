@@ -11,7 +11,7 @@ export default function TermsOfServicePage() {
 
           <p className="mt-4">
             Please read these Terms of Service ("Terms", "Terms of Service") carefully before using the
-            https://nodepilot.com website operated by NodePilot.
+            https://nodepilot.dev website operated by NodePilot.
           </p>
 
           <p className="mt-4">

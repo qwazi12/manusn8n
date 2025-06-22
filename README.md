@@ -308,4 +308,4 @@ This project is licensed under the MIT License.
 
 ## 📞 Support
 
-For support, please contact [support@nodepilot.com](mailto:support@nodepilot.com) or create an issue in the repository.
+For support, please contact [nodepilotdev@gmail.com](mailto:nodepilotdev@gmail.com) or create an issue in the repository.
