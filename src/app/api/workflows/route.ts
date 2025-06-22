@@ -30,32 +30,44 @@ export async function GET() {
 
     const supabaseUserId = userData.id;
 
-    // 4. Fetch user's workflows
-    const { data: workflows, error: workflowsError } = await supabaseAdmin
-      .from('workflows')
+    // 4. Fetch user's workflows from workflow_generations table only (single source of truth)
+    const { data: generations, error: generationsError } = await supabaseAdmin
+      .from('workflow_generations')
       .select(`
         id,
-        title,
-        description,
-        prompt,
-        workflow_json,
-        status,
+        original_prompt,
+        workflow_data,
+        success,
         credits_used,
-        tags,
-        is_public,
-        created_at,
-        updated_at
+        created_at
       `)
-      .eq('user_id', supabaseUserId)
+      .eq('user_id', supabaseUserId)  // Use Supabase UUID consistently
+      .eq('success', true)
       .order('created_at', { ascending: false });
 
-    if (workflowsError) {
-      console.error('Error fetching workflows:', workflowsError);
+    if (generationsError) {
+      console.error('Error fetching workflow generations:', generationsError);
       return NextResponse.json({ error: 'Failed to fetch workflows' }, { status: 500 });
     }
 
+    // Convert workflow_generations to standard workflows format
+    const allWorkflows = (generations || []).map(gen => ({
+      id: gen.id,
+      title: `Generated: ${gen.original_prompt.substring(0, 50)}...`,
+      description: `AI-generated workflow`,
+      prompt: gen.original_prompt,
+      workflow_json: gen.workflow_data,
+      status: 'completed',
+      credits_used: gen.credits_used,
+      tags: ['ai-generated'],
+      is_public: false,
+      created_at: gen.created_at,
+      updated_at: gen.created_at,
+      source: 'enhanced_ai'
+    }));
+
     // 5. Format workflows for frontend
-    const formattedWorkflows = workflows?.map(workflow => ({
+    const formattedWorkflows = allWorkflows?.map(workflow => ({
       id: workflow.id,
       title: workflow.title || 'Untitled Workflow',
       description: workflow.description || workflow.prompt?.substring(0, 100) + '...',

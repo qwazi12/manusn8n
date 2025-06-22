@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Accordion,
   AccordionContent,
@@ -5,6 +7,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
+import BlurFade from "@/components/magicui/blur-fade";
 import Link from "next/link";
 
 export function FAQSection() {
@@ -33,34 +36,47 @@ export function FAQSection() {
 
   return (
     <section id="faq" className="container mx-auto py-16 md:py-24">
-      <div className="text-center mb-12">
-        <h2 className="text-lg font-medium text-muted-foreground mb-2">FAQS</h2>
-        <h3 className="text-3xl md:text-4xl font-bold mb-4">Common Questions</h3>
-      </div>
-
-      <div className="max-w-3xl mx-auto">
-        <Accordion type="single" collapsible className="w-full">
-          {faqs.map((faq) => (
-            <AccordionItem key={faq.question} value={faq.question}>
-              <AccordionTrigger className="text-left">
-                {faq.question}
-              </AccordionTrigger>
-              <AccordionContent>
-                {faq.answer}
-              </AccordionContent>
-            </AccordionItem>
-          ))}
-        </Accordion>
-
-        <div className="mt-8 flex items-center justify-center">
-          <div className="flex items-center">
-            <span className="mr-2">Still have questions?</span>
-            <Button variant="link" asChild className="p-0 h-auto">
-              <Link href="#contact">Contact us</Link>
-            </Button>
-          </div>
+      <BlurFade delay={0.2}>
+        <div className="text-center mb-12">
+          <h2 className="text-lg font-medium text-primary mb-2">FAQS</h2>
+          <h3 className="text-3xl md:text-4xl font-bold mb-4">Common Questions</h3>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            Find answers to frequently asked questions about NodePilot and our AI-powered automation platform.
+          </p>
         </div>
-      </div>
+      </BlurFade>
+
+      <BlurFade delay={0.4}>
+        <div className="max-w-3xl mx-auto">
+          <Accordion type="single" collapsible className="w-full space-y-4">
+            {faqs.map((faq, index) => (
+              <AccordionItem
+                key={faq.question}
+                value={faq.question}
+                className="border rounded-lg px-6 bg-card/50 hover:bg-card/80 transition-colors"
+              >
+                <AccordionTrigger className="text-left hover:no-underline py-6">
+                  <span className="font-semibold">{faq.question}</span>
+                </AccordionTrigger>
+                <AccordionContent className="pb-6 text-muted-foreground leading-relaxed">
+                  {faq.answer}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+
+          <BlurFade delay={0.6}>
+            <div className="mt-12 text-center">
+              <div className="inline-flex items-center gap-2 text-muted-foreground">
+                <span>Still have questions?</span>
+                <Button variant="link" asChild className="p-0 h-auto text-primary">
+                  <Link href="#contact">Contact us</Link>
+                </Button>
+              </div>
+            </div>
+          </BlurFade>
+        </div>
+      </BlurFade>
     </section>
   );
 }

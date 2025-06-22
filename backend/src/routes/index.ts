@@ -7,7 +7,8 @@ import authRoutes from './auth.routes';
 import batchRoutes from './batch.routes';
 import templateRoutes from './template.routes';
 import pricingRoutes from './pricing.routes';
-import { aiService } from '../services/ai/aiService';
+import { nodePilotAiService } from '../services/ai/nodePilotAiService';
+import { logger } from '../utils/logger';
 
 const router = Router();
 
@@ -34,7 +35,7 @@ router.post('/test-ai', async (req, res) => {
       return res.status(400).json({ error: 'Prompt is required' });
     }
 
-    const result = await aiService.generateWorkflow({
+    const result = await nodePilotAiService.generateWorkflow({
       prompt,
       userId: 'test-user',
       files: []
@@ -46,11 +47,122 @@ router.post('/test-ai', async (req, res) => {
       status: result.status
     });
   } catch (error) {
-    console.error('Test AI error:', error);
+    logger.error('Test AI error:', error);
     return res.status(500).json({ 
       error: 'Internal server error', 
       details: error instanceof Error ? error.message : 'Unknown error' 
     });
+  }
+});
+
+// Enhanced chat endpoint - Main conversational interface
+router.post('/chat/message', async (req, res) => {
+  try {
+    const { message, userId, conversationId } = req.body;
+
+    if (!message) {
+      return res.status(400).json({ error: 'Message is required' });
+    }
+
+    if (!userId) {
+      return res.status(400).json({ error: 'User ID is required' });
+    }
+
+    // Use the enhanced AI service for intelligent conversation
+    const result = await nodePilotAiService.processUserMessage(
+      userId,
+      message,
+      conversationId
+    );
+
+    // Handle credit deduction and get remaining credits
+    let creditsRemaining;
+    try {
+      // Translate Clerk ID to Supabase UUID for credit operations
+      const { supabaseService } = await import('../services/database/supabaseService');
+      const supabaseUserId = await supabaseService.getSupabaseUserIdFromClerkId(userId);
+
+      // Always get current credits to display
+      const { creditService } = await import('../services/credit/creditService');
+
+      // Deduct 1 credit for EVERY chat interaction (as requested)
+      if (result.success) {
+        logger.info('Chat interaction, deducting 1 credit', { clerkId: userId, supabaseUserId, hasWorkflow: !!result.workflow });
+        await creditService.deductCreditsForWorkflow(supabaseUserId, 'chat_interaction_' + Date.now(), 1);
+      }
+
+      // Get updated credit balance
+      const creditInfo = await creditService.getUserCredits(supabaseUserId);
+      creditsRemaining = creditInfo.credits;
+
+    } catch (creditError) {
+      logger.error('Error handling credits:', creditError);
+      // Try to get credits without deduction
+      try {
+        const { supabaseService } = await import('../services/database/supabaseService');
+        const supabaseUserId = await supabaseService.getSupabaseUserIdFromClerkId(userId);
+        const { creditService } = await import('../services/credit/creditService');
+        const creditInfo = await creditService.getUserCredits(supabaseUserId);
+        creditsRemaining = creditInfo.credits;
+      } catch (fallbackError) {
+        logger.error('Error fetching credits fallback:', fallbackError);
+      }
+    }
+
+    return res.status(200).json({
+      success: result.success,
+      message: result.message,
+      conversationResponse: result.conversationResponse,
+      workflow: result.workflow,
+      suggestions: result.suggestions,
+      creditsRemaining,
+      error: result.error
+    });
+  } catch (error) {
+    logger.error('Enhanced chat error:', error);
+    return res.status(500).json({
+      error: 'Internal server error',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// Enhanced chat health check
+router.get('/chat/health', (req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    message: 'Enhanced NodePilot AI chat is running',
+    features: ['intent_classification', 'conversation_handling', 'workflow_generation']
+  });
+});
+
+// Get user credits endpoint for frontend
+router.get('/credits', async (req, res) => {
+  try {
+    const clerkUserId = req.headers.authorization?.replace('Bearer ', '') || req.query.userId;
+
+    if (!clerkUserId) {
+      return res.status(400).json({ error: 'User ID is required' });
+    }
+
+    // Translate Clerk ID to Supabase UUID
+    const { supabaseService } = await import('../services/database/supabaseService');
+    const supabaseUserId = await supabaseService.getSupabaseUserIdFromClerkId(clerkUserId as string);
+
+    const { creditService } = await import('../services/credit/creditService');
+    const creditInfo = await creditService.getUserCredits(supabaseUserId);
+
+    return res.status(200).json({
+      credits: creditInfo.credits,
+      plan: creditInfo.plan,
+      trialStatus: {
+        isTrialActive: creditInfo.isTrialActive,
+        trialStart: creditInfo.trialStart
+      }
+    });
+  } catch (error) {
+    logger.error('Error fetching user credits:', error);
+    return res.status(500).json({ error: 'Failed to fetch credits' });
   }
 });
 

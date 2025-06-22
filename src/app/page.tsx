@@ -1,25 +1,27 @@
 "use client";
 
-import { HeroSection } from "@/components/sections/HeroSection";
-import { BenefitsSection } from "@/components/sections/BenefitsSection";
-import { ProcessSection } from "@/components/sections/ProcessSection";
-import { DiscordCTASection } from "@/components/sections/DiscordCTASection";
+import NPV3Hero from "@/components/sections/npv3-hero";
+import NPV3Problem from "@/components/sections/npv3-problem";
+import NPV3Features from "@/components/sections/npv3-features";
+import NPV3HowItWorks from "@/components/sections/npv3-how-it-works";
+import NPV3FAQ from "@/components/sections/npv3-faq";
+import NPV3Blog from "@/components/sections/npv3-blog";
+import NPV3CTA from "@/components/sections/npv3-cta";
 import { PricingSection } from "@/components/sections/PricingSection";
 import { ContactSection } from "@/components/sections/ContactSection";
-import { FAQSection } from "@/components/sections/FAQSection";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <HeroSection />
-        <BenefitsSection />
-        <ProcessSection />
-        <DiscordCTASection />
-        <PricingSection />
-        <ContactSection />
-        <FAQSection />
-      </div>
+    <div className="min-h-screen bg-background">
+      <NPV3Hero />
+      <NPV3Problem />
+      <NPV3Features />
+      <NPV3HowItWorks />
+      <NPV3FAQ />
+      <NPV3Blog />
+      <PricingSection />
+      <ContactSection />
+      <NPV3CTA />
     </div>
   );
 }

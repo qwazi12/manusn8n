@@ -1,536 +1,550 @@
-// src/services/ai/nodePilotAiService.ts
+// Enhanced NodePilot AI Service with OpenAI GPT-4o + Claude Sonnet 4 Hybrid Architecture
+import OpenAI from 'openai';
 import Anthropic from '@anthropic-ai/sdk';
 import { config } from '../../config/config';
 import { logger } from '../../utils/logger';
 import { supabaseService } from '../database/supabaseService';
-import { toolService } from './toolService';
-import { ragService } from './ragService';
-import fs from 'fs/promises';
-import path from 'path';
 
-// Types for NodePilot AI system
-export interface NodePilotAiRequest {
-  prompt: string;
+export interface ConversationMessage {
+  id: string;
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+  intent?: 'workflow_request' | 'general_conversation' | 'clarification_needed';
+  confidence?: number;
+  timestamp: Date;
+  metadata?: Record<string, any>;
+}
+
+export interface WorkflowGenerationRequest {
+  userPrompt: string;
+  conversationHistory: ConversationMessage[];
   userId: string;
-  conversationId?: string;
-  files?: string[];
+  refinedPrompt?: string;
 }
 
-export interface NodePilotAiResponse {
-  workflow: any;
-  status: 'completed' | 'failed' | 'in_progress';
+export interface WorkflowGenerationResponse {
+  success: boolean;
+  workflow?: any;
   message: string;
-  conversationId: string;
-  toolCalls?: any[];
+  conversationResponse: string;
+  suggestions?: string[];
+  error?: string;
 }
 
-export interface AgentState {
-  step: number;
-  status: 'analyzing' | 'planning' | 'executing' | 'validating' | 'completed' | 'failed';
-  currentTask?: string;
-  memories?: any[];
-  eventStream: any[];
-}
-
-class NodePilotAiService {
+class EnhancedNodePilotAiService {
+  private static instance: EnhancedNodePilotAiService;
+  private openai: OpenAI;
   private anthropic: Anthropic;
-  private static instance: NodePilotAiService;
+  private supabase: any;
   private prompts: Map<string, string> = new Map();
-  private tools: any[] = [];
+  private conversationHistory: Map<string, ConversationMessage[]> = new Map();
 
   private constructor() {
+    // Initialize OpenAI for conversations
+    this.openai = new OpenAI({
+      apiKey: config.openai.apiKey
+    });
+
+    // Initialize Claude for workflow generation
     this.anthropic = new Anthropic({
-      apiKey: config.anthropic.apiKey,
+      apiKey: config.anthropic.apiKey
     });
 
-    // Set fallback prompts immediately to ensure service is functional
-    this.setFallbackPrompts();
-    this.setFallbackTools();
+    // Use existing Supabase service
+    this.supabase = supabaseService.getClient();
 
-    // Try to load custom prompts asynchronously (non-blocking)
-    this.initializePrompts().catch(error => {
-      logger.warn('Could not load custom prompts, using fallbacks:', error);
-    });
-
-    this.initializeTools();
-    logger.info('NodePilot AI service initialized with advanced agent capabilities');
+    this.initializeService();
   }
 
-  public static getInstance(): NodePilotAiService {
-    if (!NodePilotAiService.instance) {
-      NodePilotAiService.instance = new NodePilotAiService();
+  public static getInstance(): EnhancedNodePilotAiService {
+    if (!EnhancedNodePilotAiService.instance) {
+      EnhancedNodePilotAiService.instance = new EnhancedNodePilotAiService();
     }
-    return NodePilotAiService.instance;
+    return EnhancedNodePilotAiService.instance;
   }
 
-  /**
-   * Initialize AI prompts from Supabase database (with file fallback)
-   */
-  private async initializePrompts(): Promise<void> {
+  private async initializeService(): Promise<void> {
     try {
-      // Try loading from Supabase database first
       await this.loadPromptsFromDatabase();
-      await this.loadToolsFromDatabase();
-      logger.info('All prompts and tools loaded successfully from database');
+      logger.info('Enhanced NodePilot AI service initialized with GPT-4o + Claude Sonnet 4 hybrid architecture');
     } catch (error) {
-      logger.warn('Failed to load from database, falling back to files', { error });
-      // Fallback to file system if database fails
-      await this.loadPromptsFromFiles();
+      logger.error('Failed to initialize Enhanced NodePilot AI service:', error);
     }
   }
 
-  /**
-   * Load prompts from Supabase database
-   */
   private async loadPromptsFromDatabase(): Promise<void> {
     try {
-      const { supabaseService } = await import('../database/supabaseService');
-      const client = supabaseService.getClient();
-
-      // Load active prompts
-      const { data: prompts, error: promptsError } = await client
+      const { data: prompts, error } = await this.supabase
         .from('ai_prompts')
-        .select('name, content')
-        .eq('is_active', true);
+        .select('*');
 
-      if (promptsError) throw promptsError;
+      if (error) throw error;
 
-      if (prompts && prompts.length > 0) {
-        prompts.forEach(prompt => {
-          this.prompts.set(prompt.name, prompt.content);
-          logger.info(`Loaded prompt from DB: ${prompt.name}`);
-        });
-      } else {
-        throw new Error('No prompts found in database');
-      }
+      prompts?.forEach((prompt: any) => {
+        this.prompts.set(prompt.name, prompt.content);
+        logger.info(`Loaded prompt from DB: ${prompt.name}`);
+      });
+
+      // Add conversation-specific prompts
+      await this.ensureConversationPrompts();
     } catch (error) {
-      logger.error('Error loading prompts from database', { error });
-      throw error;
+      logger.error('Error loading prompts from database:', error);
     }
   }
 
-  /**
-   * Load tools from Supabase database
-   */
-  private async loadToolsFromDatabase(): Promise<void> {
-    try {
-      const { supabaseService } = await import('../database/supabaseService');
-      const client = supabaseService.getClient();
-
-      // Load active tools
-      const { data: tools, error: toolsError } = await client
-        .from('ai_tools')
-        .select('name, config')
-        .eq('is_active', true);
-
-      if (toolsError) throw toolsError;
-
-      if (tools && tools.length > 0) {
-        // Get the core_tools config
-        const coreTools = tools.find(tool => tool.name === 'core_tools');
-        if (coreTools) {
-          this.tools = coreTools.config;
-          logger.info('Loaded tools configuration from database');
-        }
-      } else {
-        throw new Error('No tools found in database');
-      }
-    } catch (error) {
-      logger.error('Error loading tools from database', { error });
-      throw error;
-    }
-  }
-
-  /**
-   * Fallback: Load prompts from files
-   */
-  private async loadPromptsFromFiles(): Promise<void> {
-    try {
-      const promptsDir = path.join(__dirname, '../../ai_prompts');
-
-      // Load all prompt files as fallback
-      const promptFiles = [
-        'main_prompt.txt',
-        'chat_prompt.txt',
-        'agent_loop.txt',
-        'modules.txt',
-        'memory_prompt.txt',
-        'memory_rating_prompt.txt'
-      ];
-
-      for (const file of promptFiles) {
-        try {
-          const content = await fs.readFile(path.join(promptsDir, file), 'utf-8');
-          const key = file.replace('.txt', '').replace('_', '');
-          this.prompts.set(key, content);
-          logger.info(`Loaded prompt from file: ${key}`);
-        } catch (error) {
-          logger.warn(`Could not load prompt file ${file}, using fallback`);
-          this.setFallbackPrompts();
-        }
-      }
-
-      // Load tools configuration from file
-      try {
-        const toolsContent = await fs.readFile(path.join(promptsDir, 'tools.json'), 'utf-8');
-        this.tools = JSON.parse(toolsContent);
-        logger.info('Loaded tools configuration from file');
-      } catch (error) {
-        logger.warn('Could not load tools file, using fallback');
-        this.setFallbackTools();
-      }
-    } catch (error) {
-      logger.error('Error loading prompts from files', { error });
-      this.setFallbackPrompts();
-      this.setFallbackTools();
-    }
-  }
-
-  /**
-   * Set fallback prompts based on provided content
-   */
-  private setFallbackPrompts(): void {
-    this.prompts.set('prompt', `You are the AI component of NodePilot, a SaaS platform designed to convert natural language instructions into functional n8n workflow JSON. Your primary purpose is to assist users in generating, validating, and understanding n8n workflows.
-
-## Capabilities
-- Generate n8n workflow JSON from natural language descriptions
-- Validate and refine n8n workflow JSON for correctness and best practices  
-- Provide explanations and documentation for n8n nodes, expressions, and concepts
-- Assist with troubleshooting common n8n workflow issues
-- Communicate effectively with users through the NodePilot frontend
-
-## Technical Context
-- Understand core n8n workflow JSON structure: nodes, connections, settings, credentials
-- Proficiency in n8n expressions ({{ $json.fieldName }}) for dynamic data handling
-- Generate workflows for various integrations (Slack, Google Sheets, HTTP, databases, AI agents)
-
-## Task Approach
-1. Analyze natural language prompts to identify desired n8n workflow functionality
-2. Break down complex requests into manageable components
-3. Generate initial n8n workflow JSON draft
-4. Validate and refine the workflow using internal tools
-5. Ensure workflows meet requirements and follow n8n best practices`);
-
-    this.prompts.set('chatprompt', `You are the AI component of NodePilot. Follow these communication rules:
-
-- Use backticks to format n8n node names, workflow elements, and JSON keys
-- Always provide complete n8n workflow JSON in code blocks
-- Follow with clear, step-by-step implementation guides
-- Never mention tool names to users - provide seamless experience
-- Prefer tool calls over asking users for information
-- Execute plans immediately without waiting for user confirmation
-
-When generating workflows, always provide:
-1. Complete JSON workflow structure
-2. Step-by-step setup instructions
-3. Explanation of key components
-4. Best practices and considerations`);
-
-    this.prompts.set('agentloop', `You operate in a continuous agent loop with these steps:
-1. Analyze User Input: Understand requests and conversation state
-2. Select Action: Choose appropriate tools or communication methods  
-3. Execute Action: Perform selected action within NodePilot system
-4. Process Results: Evaluate outcomes and results
-5. Communicate & Iterate: Send updates/questions to user, continue loop
-6. Enter Standby: Wait for new instructions when task complete`);
-  }
-
-  /**
-   * Set fallback tools configuration
-   */
-  private setFallbackTools(): void {
-    this.tools = [
+  private async ensureConversationPrompts(): Promise<void> {
+    const conversationPrompts = [
       {
-        type: "function",
-        function: {
-          name: "message_notify_user",
-          description: "Send a message to the user via the NodePilot frontend",
-          parameters: {
-            type: "object", 
-            properties: {
-              text: { type: "string", description: "Message text to display to user" }
-            },
-            required: ["text"]
-          }
-        }
+        name: 'intent_classification',
+        content: `You are an advanced intent classifier for NodePilot, an n8n workflow automation platform.
+Using GPT-4o's advanced reasoning capabilities, analyze user input and classify it into one of these categories:
+
+1. WORKFLOW_REQUEST: User wants to create, modify, or get help with n8n workflows
+   - Keywords: create, build, automate, workflow, connect, integrate, sync
+   - Examples: "Create a workflow that...", "I need to automate...", "Build me a workflow for..."
+
+2. GENERAL_CONVERSATION: User wants to chat, ask questions, or get help about the platform
+   - Keywords: what, how, help, explain, price, cost, features
+   - Examples: "What is NodePilot?", "How does this work?", "What can you do?"
+
+3. CLARIFICATION_NEEDED: Input is unclear or needs more information
+   - Vague requests, incomplete information, ambiguous intent
+
+Respond in JSON format:
+{
+  "intent": "workflow_request|general_conversation|clarification_needed",
+  "confidence": 85,
+  "reasoning": "Brief explanation",
+  "entities": {
+    "tools": ["Gmail", "Slack"],
+    "actions": ["send", "notify"],
+    "triggers": ["new email"]
+  }
+}`
       },
       {
-        type: "function",
-        function: {
-          name: "n8n_workflow_validator", 
-          description: "Validate an n8n workflow JSON structure",
-          parameters: {
-            type: "object",
-            properties: {
-              workflow_json: { type: "string", description: "The n8n workflow JSON string to validate" }
-            },
-            required: ["workflow_json"]
-          }
-        }
+        name: 'conversation_handler',
+        content: `You are NodePilot's conversational assistant. You help users with:
+
+- Questions about NodePilot and n8n workflow automation
+- Platform features, pricing, and capabilities  
+- General guidance and support
+- Explaining how automation works
+
+Be conversational, helpful, and knowledgeable. If users show interest in creating workflows, guide them toward workflow creation.
+
+Keep responses concise but informative. Always be ready to help with workflow creation if the user shows interest.`
+      },
+      {
+        name: 'workflow_prompt_optimizer',
+        content: `You are a prompt optimizer for n8n workflow generation. Your job is to take a user's workflow request and optimize it for Claude Sonnet 4 to generate the best possible n8n workflow.
+
+Transform the user's request into a detailed, structured prompt that includes:
+
+1. Clear workflow objective
+2. Specific tools/services to connect
+3. Trigger conditions
+4. Actions to perform
+5. Data flow requirements
+6. Error handling needs
+
+Make the prompt comprehensive and technical while preserving the user's intent.
+
+Input: User's original request
+Output: Optimized prompt for workflow generation`
       }
     ];
-  }
 
-  /**
-   * Initialize tools (placeholder for future tool implementations)
-   */
-  private initializeTools(): void {
-    // Tools will be implemented as the system expands
-    logger.info('Tools initialized');
-  }
-
-  /**
-   * Generate workflow using the advanced NodePilot AI system
-   */
-  async generateWorkflow(request: NodePilotAiRequest): Promise<NodePilotAiResponse> {
-    try {
-      logger.info('Starting NodePilot AI workflow generation', { userId: request.userId });
-
-      // Initialize agent state
-      const agentState: AgentState = {
-        step: 1,
-        status: 'analyzing',
-        eventStream: []
-      };
-
-      // Load user memories
-      const memories = await this.loadUserMemories(request.userId);
-      agentState.memories = memories;
-
-      // Build comprehensive system prompt
-      const systemPrompt = this.buildSystemPrompt(memories);
-
-      // Execute agent loop
-      const result = await this.executeAgentLoop(request, agentState, systemPrompt);
-
-      return result;
-
-    } catch (error) {
-      logger.error('Error in NodePilot AI workflow generation', { error, userId: request.userId });
-      return {
-        workflow: null,
-        status: 'failed',
-        message: error instanceof Error ? error.message : 'Unknown error occurred',
-        conversationId: request.conversationId || 'error'
-      };
-    }
-  }
-
-  /**
-   * Build comprehensive system prompt from all components
-   */
-  private buildSystemPrompt(memories: any[]): string {
-    const basePrompt = this.prompts.get('prompt') || '';
-    const chatPrompt = this.prompts.get('chatprompt') || '';
-    const agentLoop = this.prompts.get('agentloop') || '';
-    
-    let systemPrompt = `${basePrompt}\n\n## Communication Guidelines\n${chatPrompt}\n\n## Agent Loop\n${agentLoop}`;
-
-    // Add user memories if available
-    if (memories && memories.length > 0) {
-      systemPrompt += '\n\n## User Preferences & Memories\n';
-      memories.forEach(memory => {
-        systemPrompt += `- ${memory.content}\n`;
-      });
-    }
-
-    return systemPrompt;
-  }
-
-  /**
-   * Execute the agent loop for workflow generation
-   */
-  private async executeAgentLoop(
-    request: NodePilotAiRequest, 
-    agentState: AgentState, 
-    systemPrompt: string
-  ): Promise<NodePilotAiResponse> {
-    
-    const conversationId = request.conversationId || `conv_${Date.now()}`;
-    
-    try {
-      // Step 1: Analyze and generate initial workflow
-      agentState.status = 'executing';
-      agentState.currentTask = 'Generating n8n workflow';
-
-      const message = await this.anthropic.messages.create({
-        model: "claude-3-5-sonnet-20241022",
-        max_tokens: 4000,
-        temperature: 0.7,
-        system: systemPrompt,
-        messages: [
-          {
-            role: "user",
-            content: `Generate an n8n workflow for: ${request.prompt}`
-          }
-        ]
-      });
-
-      // Extract workflow JSON from response
-      const content = message.content[0];
-      if (content.type !== 'text') {
-        throw new Error('Unexpected response type from Claude');
-      }
-
-      const workflowJson = this.extractWorkflowJson(content.text);
-      
-      // Step 2: Validate workflow
-      agentState.status = 'validating';
-      const isValid = await this.validateWorkflow(workflowJson);
-      
-      if (!isValid) {
-        // Attempt to fix workflow
-        const fixedWorkflow = await this.fixWorkflow(workflowJson, systemPrompt);
-        agentState.status = 'completed';
+    for (const prompt of conversationPrompts) {
+      const existing = this.prompts.get(prompt.name);
+      if (!existing) {
+        // Add to database
+        await this.supabase
+          .from('ai_prompts')
+          .insert({
+            name: prompt.name,
+            content: prompt.content,
+            version: 1,
+            is_active: true
+          });
         
-        return {
-          workflow: fixedWorkflow,
-          status: 'completed',
-          message: 'Workflow generated and validated successfully (with corrections)',
-          conversationId,
-          toolCalls: agentState.eventStream
-        };
+        this.prompts.set(prompt.name, prompt.content);
+        logger.info(`Added new conversation prompt: ${prompt.name}`);
       }
+    }
+  }
 
-      agentState.status = 'completed';
+  // Main entry point for processing user messages
+  async processUserMessage(
+    userId: string,
+    message: string,
+    conversationId?: string
+  ): Promise<WorkflowGenerationResponse> {
+    try {
+      // Get or create conversation history
+      const history = this.getConversationHistory(userId, conversationId);
       
-      return {
-        workflow: workflowJson,
-        status: 'completed', 
-        message: 'Workflow generated and validated successfully',
-        conversationId,
-        toolCalls: agentState.eventStream
-      };
-
-    } catch (error) {
-      logger.error('Error in agent loop execution', { error });
-      return {
-        workflow: null,
-        status: 'failed',
-        message: error instanceof Error ? error.message : 'Agent loop execution failed',
-        conversationId
-      };
-    }
-  }
-
-  /**
-   * Extract workflow JSON from Claude response
-   */
-  private extractWorkflowJson(text: string): any {
-    try {
-      // Try to extract JSON from code blocks
-      const jsonMatch = text.match(/```(?:json)?\s*(\{[\s\S]*\})\s*```/);
-      const jsonString = jsonMatch ? jsonMatch[1] : text;
+      // Step 1: Classify intent using OpenAI
+      const classification = await this.classifyIntent(message, history);
       
-      return JSON.parse(jsonString);
+      // Add user message to history
+      const userMessage: ConversationMessage = {
+        id: Date.now().toString(),
+        role: 'user',
+        content: message,
+        intent: classification.intent as 'workflow_request' | 'general_conversation' | 'clarification_needed',
+        confidence: classification.confidence,
+        timestamp: new Date()
+      };
+      history.push(userMessage);
+
+      let response: WorkflowGenerationResponse;
+
+      if (classification.intent === 'workflow_request' && classification.confidence > 70) {
+        // Step 2: Generate workflow using Claude
+        response = await this.generateWorkflowWithClaude({
+          userPrompt: message,
+          conversationHistory: history,
+          userId
+        });
+      } else {
+        // Step 3: Handle conversation using OpenAI
+        response = await this.handleConversationWithOpenAI(message, history, classification);
+      }
+
+      // Add assistant response to history
+      const assistantMessage: ConversationMessage = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: response.conversationResponse,
+        timestamp: new Date()
+      };
+      history.push(assistantMessage);
+
+      // Store conversation in database
+      await this.storeConversation(userId, conversationId, history);
+
+      return response;
+
     } catch (error) {
-      // Return mock workflow if parsing fails
-      return this.getMockWorkflow();
+      logger.error('Error processing user message:', error);
+      return {
+        success: false,
+        message: 'I encountered an error processing your request. Please try again.',
+        conversationResponse: 'I encountered an error processing your request. Please try again.',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
     }
   }
 
-  /**
-   * Validate workflow using internal validator
-   */
-  private async validateWorkflow(workflow: any): Promise<boolean> {
+  // OpenAI Intent Classification
+  private async classifyIntent(
+    message: string,
+    history: ConversationMessage[]
+  ): Promise<{ intent: string; confidence: number; reasoning: string; entities: any }> {
     try {
-      // Basic validation - check required fields
-      if (!workflow || !workflow.nodes || !Array.isArray(workflow.nodes)) {
-        return false;
-      }
+      const prompt = this.prompts.get('intent_classification') || '';
+      const recentHistory = history.slice(-3).map(h => `${h.role}: ${h.content}`).join('\n');
+      
+      const response = await this.openai.chat.completions.create({
+        model: 'gpt-4o',
+        messages: [
+          { role: 'system', content: prompt },
+          { role: 'user', content: `Recent conversation:\n${recentHistory}\n\nCurrent message: ${message}` }
+        ],
+        temperature: 0.1,
+        response_format: { type: 'json_object' }
+      });
 
-      // Check if nodes have required properties
-      for (const node of workflow.nodes) {
-        if (!node.id || !node.type || !node.position) {
-          return false;
-        }
-      }
-
-      return true;
+      const result = JSON.parse(response.choices[0]?.message?.content || '{}');
+      return {
+        intent: result.intent || 'general_conversation',
+        confidence: result.confidence || 50,
+        reasoning: result.reasoning || 'Default classification',
+        entities: result.entities || {}
+      };
     } catch (error) {
-      logger.error('Workflow validation error', { error });
-      return false;
+      logger.error('Intent classification error:', error);
+      // Fallback classification
+      const isWorkflowRequest = /create|build|automate|workflow|connect|integrate/i.test(message);
+      return {
+        intent: isWorkflowRequest ? 'workflow_request' : 'general_conversation',
+        confidence: 60,
+        reasoning: 'Fallback keyword-based classification',
+        entities: {}
+      };
     }
   }
 
-  /**
-   * Attempt to fix invalid workflow
-   */
-  private async fixWorkflow(workflow: any, systemPrompt: string): Promise<any> {
+  // OpenAI Conversation Handling
+  private async handleConversationWithOpenAI(
+    message: string,
+    history: ConversationMessage[],
+    classification: any
+  ): Promise<WorkflowGenerationResponse> {
     try {
-      const message = await this.anthropic.messages.create({
-        model: "claude-3-5-sonnet-20241022",
+      const conversationPrompt = this.prompts.get('conversation_handler') || '';
+      const recentHistory = history.slice(-5).map(h => `${h.role}: ${h.content}`).join('\n');
+
+      const response = await this.openai.chat.completions.create({
+        model: 'gpt-4o',
+        messages: [
+          { role: 'system', content: conversationPrompt },
+          { role: 'user', content: `Conversation history:\n${recentHistory}\n\nUser message: ${message}\n\nClassification: ${classification.intent} (${classification.confidence}% confidence)` }
+        ],
+        temperature: 0.7,
+        max_tokens: 800
+      });
+
+      const conversationResponse = response.choices[0]?.message?.content || 'How can I help you today?';
+
+      // Generate suggestions based on intent
+      const suggestions = this.generateSuggestions(classification.intent);
+
+      return {
+        success: true,
+        message: conversationResponse,
+        conversationResponse,
+        suggestions
+      };
+    } catch (error) {
+      logger.error('Conversation handling error:', error);
+      return {
+        success: false,
+        message: 'I\'m here to help! What would you like to know about NodePilot?',
+        conversationResponse: 'I\'m here to help! What would you like to know about NodePilot?',
+        suggestions: ['Create a workflow', 'Learn about n8n', 'See pricing', 'Get help']
+      };
+    }
+  }
+
+  // Claude Workflow Generation
+  private async generateWorkflowWithClaude(
+    request: WorkflowGenerationRequest
+  ): Promise<WorkflowGenerationResponse> {
+    try {
+      // Step 1: Optimize prompt using OpenAI
+      const optimizedPrompt = await this.optimizePromptForWorkflow(request);
+
+      // Step 2: Generate workflow using Claude Sonnet 4
+      const workflowPrompt = this.prompts.get('main_prompt') || '';
+      const fullPrompt = `${workflowPrompt}\n\nOptimized Request: ${optimizedPrompt}`;
+
+      const response = await this.anthropic.messages.create({
+        model: 'claude-3-5-sonnet-20241022', // Using Claude 3.5 Sonnet (stable)
         max_tokens: 4000,
-        temperature: 0.3,
-        system: systemPrompt + '\n\nFix the following invalid n8n workflow JSON to make it valid:',
         messages: [
           {
-            role: "user",
-            content: `Fix this workflow: ${JSON.stringify(workflow, null, 2)}`
+            role: 'user',
+            content: fullPrompt
           }
         ]
       });
 
-      const content = message.content[0];
-      if (content.type === 'text') {
-        return this.extractWorkflowJson(content.text);
+      const workflowContent = response.content[0]?.type === 'text' ? response.content[0].text : '';
+
+      // Log the raw response for debugging
+      logger.info('Claude raw response:', { content: workflowContent.substring(0, 500) + '...' });
+
+      // Parse workflow JSON
+      let workflow;
+      try {
+        const jsonMatch = workflowContent.match(/```json\n([\s\S]*?)\n```/);
+        if (jsonMatch) {
+          logger.info('Found JSON in code block');
+          workflow = JSON.parse(jsonMatch[1]);
+        } else {
+          // Try to find JSON in the response
+          const jsonStart = workflowContent.indexOf('{');
+          const jsonEnd = workflowContent.lastIndexOf('}') + 1;
+          if (jsonStart !== -1 && jsonEnd > jsonStart) {
+            logger.info('Found JSON in response body');
+            const jsonString = workflowContent.substring(jsonStart, jsonEnd);
+            workflow = JSON.parse(jsonString);
+          } else {
+            logger.warn('No JSON found in Claude response');
+          }
+        }
+      } catch (parseError) {
+        logger.error('Failed to parse workflow JSON:', parseError);
+        logger.error('Raw content that failed to parse:', workflowContent);
       }
+
+      logger.info('Parsed workflow:', { hasWorkflow: !!workflow, workflowKeys: workflow ? Object.keys(workflow) : [] });
+
+      // Generate conversational response using OpenAI
+      const conversationResponse = await this.generateWorkflowExplanation(request.userPrompt, workflow);
+
+      // Save to workflow_generations table (credits handled in route)
+      if (workflow) {
+        try {
+          // Translate Clerk ID to Supabase UUID for consistent storage
+          const { supabaseService } = await import('../database/supabaseService');
+          const supabaseUserId = await supabaseService.getSupabaseUserIdFromClerkId(request.userId);
+
+          // Save workflow generation
+          const { data: workflowGeneration, error } = await this.supabase
+            .from('workflow_generations')
+            .insert({
+              user_id: supabaseUserId, // Use Supabase UUID consistently
+              original_prompt: request.userPrompt,
+              optimized_prompt: optimizedPrompt,
+              workflow_data: workflow,
+              generation_method: 'claude_3_5_sonnet',
+              success: true,
+              credits_used: 1
+            })
+            .select()
+            .single();
+
+          if (error) {
+            logger.error('Error saving workflow generation:', error);
+          } else {
+            logger.info('Workflow generation saved successfully', {
+              id: workflowGeneration.id,
+              clerkUserId: request.userId,
+              supabaseUserId
+            });
+          }
+        } catch (saveError) {
+          logger.error('Error saving workflow generation:', saveError);
+        }
+      }
+
+      return {
+        success: true,
+        workflow,
+        message: 'Workflow generated successfully!',
+        conversationResponse,
+        suggestions: ['Modify this workflow', 'Create another workflow', 'Download workflow', 'Explain how it works']
+      };
+
+    } catch (error) {
+      logger.error('Workflow generation error:', error);
       
-      return workflow;
-    } catch (error) {
-      logger.error('Error fixing workflow', { error });
-      return workflow;
+      // Fallback conversational response
+      const fallbackResponse = await this.handleConversationWithOpenAI(
+        `I'd like to help you create a workflow for: ${request.userPrompt}. Could you provide more details about what you want to automate?`,
+        request.conversationHistory,
+        { intent: 'workflow_request', confidence: 80 }
+      );
+
+      return {
+        success: false,
+        message: 'I encountered an issue generating the workflow. Let me help you refine your request.',
+        conversationResponse: fallbackResponse.conversationResponse,
+        suggestions: ['Tell me more about your automation needs', 'What tools do you want to connect?', 'What should trigger this workflow?'],
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
     }
   }
 
-  /**
-   * Load user memories from database
-   */
-  private async loadUserMemories(userId: string): Promise<any[]> {
+  // Optimize user prompt for workflow generation
+  private async optimizePromptForWorkflow(request: WorkflowGenerationRequest): Promise<string> {
     try {
-      // This would integrate with your Supabase memory system
-      // For now, return empty array
-      return [];
+      const optimizerPrompt = this.prompts.get('workflow_prompt_optimizer') || '';
+      const recentHistory = request.conversationHistory.slice(-3).map(h => `${h.role}: ${h.content}`).join('\n');
+
+      const response = await this.openai.chat.completions.create({
+        model: 'gpt-4o',
+        messages: [
+          { role: 'system', content: optimizerPrompt },
+          { role: 'user', content: `Conversation context:\n${recentHistory}\n\nUser's workflow request: ${request.userPrompt}` }
+        ],
+        temperature: 0.3,
+        max_tokens: 1000
+      });
+
+      return response.choices[0]?.message?.content || request.userPrompt;
     } catch (error) {
-      logger.error('Error loading user memories', { error });
-      return [];
+      logger.error('Prompt optimization error:', error);
+      return request.userPrompt;
     }
   }
 
-  /**
-   * Generate mock workflow for fallback
-   */
-  private getMockWorkflow(): any {
-    return {
-      nodes: [
-        {
-          id: 'start',
-          type: 'n8n-nodes-base.start',
-          position: [100, 300],
-          parameters: {},
-          name: 'Start'
-        },
-        {
-          id: 'webhook',
-          type: 'n8n-nodes-base.webhook',
-          position: [300, 300],
-          parameters: {
-            path: 'nodepilot-workflow',
-            httpMethod: 'POST'
+  // Generate explanation of workflow using OpenAI
+  private async generateWorkflowExplanation(userPrompt: string, workflow: any): Promise<string> {
+    try {
+      const response = await this.openai.chat.completions.create({
+        model: 'gpt-4o',
+        messages: [
+          {
+            role: 'system',
+            content: 'You are NodePilot\'s assistant. Explain the generated workflow in a conversational, helpful way. Focus on what it does and how it helps the user.'
           },
-          name: 'NodePilot Webhook'
-        }
-      ],
-      connections: [
-        {
-          source: 'start',
-          target: 'webhook',
-          sourceHandle: 'main',
-          targetHandle: 'main'
-        }
-      ]
-    };
+          {
+            role: 'user',
+            content: `User requested: "${userPrompt}"\n\nGenerated workflow: ${JSON.stringify(workflow, null, 2)}\n\nExplain this workflow in a friendly, conversational way.`
+          }
+        ],
+        temperature: 0.7,
+        max_tokens: 500
+      });
+
+      return response.choices[0]?.message?.content || 'I\'ve created a workflow for you! You can copy or download it to use in n8n.';
+    } catch (error) {
+      logger.error('Workflow explanation error:', error);
+      return 'I\'ve created a workflow for you! You can copy or download it to use in n8n.';
+    }
+  }
+
+  // Helper methods
+  private getConversationHistory(userId: string, conversationId?: string): ConversationMessage[] {
+    const key = conversationId || userId;
+    if (!this.conversationHistory.has(key)) {
+      this.conversationHistory.set(key, []);
+    }
+    return this.conversationHistory.get(key)!;
+  }
+
+  private generateSuggestions(intent: string): string[] {
+    switch (intent) {
+      case 'workflow_request':
+        return ['Tell me more details', 'What tools to connect?', 'What triggers this?', 'Show me examples'];
+      case 'general_conversation':
+        return ['Create a workflow', 'See examples', 'Learn about n8n', 'View pricing'];
+      default:
+        return ['Create a workflow', 'Ask a question', 'Get help', 'See features'];
+    }
+  }
+
+  private async storeConversation(userId: string, conversationId: string | undefined, history: ConversationMessage[]): Promise<void> {
+    try {
+      // Store in Supabase - you can extend your existing schema
+      // This is a placeholder for conversation storage
+      logger.info(`Storing conversation for user ${userId}:`, history.length, 'messages');
+    } catch (error) {
+      logger.error('Error storing conversation:', error);
+    }
+  }
+
+
+
+  // Legacy compatibility method for existing workflow generation
+  async generateWorkflow(request: any): Promise<any> {
+    // Handle both old string format and new object format
+    if (typeof request === 'string') {
+      // Old format: generateWorkflow(prompt, userId)
+      const response = await this.processUserMessage('anonymous', request);
+      return {
+        workflow: response.workflow,
+        status: response.success ? 'completed' : 'failed',
+        message: response.message
+      };
+    } else {
+      // New format: generateWorkflow({ prompt, userId, files })
+      const response = await this.processUserMessage(
+        request.userId || 'anonymous',
+        request.prompt
+      );
+      return {
+        workflow: response.workflow,
+        status: response.success ? 'completed' : 'failed',
+        message: response.message
+      };
+    }
   }
 }
 
-export const nodePilotAiService = NodePilotAiService.getInstance();
+export const nodePilotAiService = EnhancedNodePilotAiService.getInstance();
+

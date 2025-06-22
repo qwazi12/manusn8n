@@ -29,15 +29,50 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [credits, setCredits] = useState<number | null>(null);
 
-  // Fetch user credits on component mount
+  // State for conversation persistence
+  const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
+  const [conversations, setConversations] = useState<any[]>([]);
+  const [loadingConversation, setLoadingConversation] = useState(false);
+
+  // Fetch user credits and load conversation history on component mount
   useEffect(() => {
     fetchUserCredits();
+    loadConversationHistory();
   }, []);
+
+  // Load conversation history from localStorage or create new conversation
+  const loadConversationHistory = async () => {
+    try {
+      // Try to get the last conversation ID from localStorage
+      const savedConversationId = localStorage.getItem('currentConversationId');
+
+      if (savedConversationId) {
+        // Load messages for this conversation
+        const response = await fetch(`/api/conversations/${savedConversationId}/messages`);
+        if (response.ok) {
+          const data = await response.json();
+          const loadedMessages = data.messages.map((msg: any) => ({
+            role: msg.role,
+            content: msg.content,
+            timestamp: new Date(msg.created_at),
+            workflow: msg.metadata?.workflow ? JSON.parse(msg.content.match(/```json\n([\s\S]*?)\n```/)?.[1] || '{}') : undefined
+          }));
+          setMessages(loadedMessages);
+          setCurrentConversationId(savedConversationId);
+        } else {
+          // Conversation not found, clear localStorage
+          localStorage.removeItem('currentConversationId');
+        }
+      }
+    } catch (error) {
+      console.error('Error loading conversation history:', error);
+    }
+  };
 
   const fetchUserCredits = async () => {
     try {
       setCreditsLoading(true);
-      const response = await fetch('/api/user-credits');
+      const response = await fetch('/api/credits');
       if (response.ok) {
         const data = await response.json();
         setUserCredits(data.credits);
@@ -51,6 +86,13 @@ export default function DashboardPage() {
     }
   }; // Will be fetched from API
 
+  // Function to start a new conversation
+  const startNewConversation = () => {
+    setMessages([]);
+    setCurrentConversationId(null);
+    localStorage.removeItem('currentConversationId');
+  };
+
   // Handler for sending a message
   const handleSendMessage = async (message: string, files: File[]) => {
     if (isLoading) return;
@@ -62,76 +104,115 @@ export default function DashboardPage() {
       files,
       timestamp: new Date()
     };
-    
+
     setMessages(prev => [...prev, userMessage]);
     setIsLoading(true);
 
     try {
-      // Call the backend API to generate workflow
-      const response = await fetch('/api/generate-workflow', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          prompt: message,
-          files: files.map(f => f.name) // For now, just send file names
-        }),
-      });
+      // Call the Next.js API route (which proxies to the backend)
+      let response: Response;
 
-      const data = await response.json();
+      if (files.length > 0) {
+        // Send as FormData if files are attached
+        const formData = new FormData();
+        formData.append('message', message);
+        if (currentConversationId) {
+          formData.append('conversationId', currentConversationId);
+        }
+
+        // Add files to FormData
+        files.forEach((file, index) => {
+          formData.append(`file_${index}`, file);
+        });
+
+        response = await fetch('/api/chat/message', {
+          method: 'POST',
+          body: formData,
+        });
+      } else {
+        // Send as JSON if no files
+        response = await fetch('/api/chat/message', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            message: message,
+            conversationId: currentConversationId,
+          }),
+        });
+      }
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to generate workflow');
+        // Try to parse error response as JSON, fallback to text
+        let errorMessage = 'Failed to process message';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorData.message || errorMessage;
+        } catch {
+          // If JSON parsing fails, get text response
+          const errorText = await response.text();
+          errorMessage = errorText || `HTTP ${response.status}: ${response.statusText}`;
+        }
+        throw new Error(errorMessage);
       }
+
+      const data = await response.json();
 
       // Add assistant response
       const assistantMessage: Message = {
         role: 'assistant',
-        content: `✅ **Workflow Generated Successfully!**
-
-**Prompt:** ${message}
-
-**Generated Workflow:**
-- **Nodes:** ${data.workflow?.nodes?.length || 0} workflow steps
-- **Connections:** ${data.workflow?.connections?.length || 0} data flows
-- **Status:** Ready to use
-
-**Credits Used:** 1
-**Remaining Credits:** ${data.remaining_credits}
-
-You can copy this workflow JSON and import it directly into n8n!`,
+        content: data.conversationResponse || data.message,
         timestamp: new Date(),
         workflow: data.workflow
       };
 
       setMessages(prev => [...prev, assistantMessage]);
-      setCredits(data.remaining_credits);
-      setUserCredits(data.remaining_credits);
 
-      // Refresh trial status after credit usage
+      // Update conversation ID and save to localStorage
+      if (data.conversationId) {
+        setCurrentConversationId(data.conversationId);
+        localStorage.setItem('currentConversationId', data.conversationId);
+      }
+
+      // Update credits if provided
+      if (data.creditsRemaining !== undefined) {
+        setCredits(data.creditsRemaining);
+        setUserCredits(data.creditsRemaining);
+      }
+
+      // Refresh trial status after potential credit usage
       fetchUserCredits();
 
     } catch (error: any) {
       console.error('Error generating workflow:', error);
+      console.error('Error details:', {
+        message: error.message,
+        status: error.status,
+        stack: error.stack,
+        type: typeof error
+      });
 
       // Handle trial expiration errors
       if (error.status === 402) {
         try {
-          const errorData = await error.json();
-          if (errorData.upgrade_required) {
-            setTrialExpired(true);
-            const errorMessage: Message = {
-              role: 'assistant',
-              content: `❌ **${errorData.error}**
+          // Only try to parse JSON if error has a json method (it's a Response object)
+          if (typeof error.json === 'function') {
+            const errorData = await error.json();
+            if (errorData.upgrade_required) {
+              setTrialExpired(true);
+              const errorMessage: Message = {
+                role: 'assistant',
+                content: `❌ **${errorData.error}**
 
 ${errorData.message}
 
 [Click here to upgrade](/pricing)`,
-              timestamp: new Date()
-            };
-            setMessages(prev => [...prev, errorMessage]);
-            return;
+                timestamp: new Date()
+              };
+              setMessages(prev => [...prev, errorMessage]);
+              return;
+            }
           }
         } catch (parseError) {
           console.error('Error parsing error response:', parseError);
@@ -162,6 +243,14 @@ Please try again or contact support if the issue persists.`,
           <div className="mb-10 text-center">
             <h1 className="text-4xl font-bold text-gray-900 mb-2">Hello {userName}</h1>
             <h2 className="text-2xl text-gray-700 font-normal">What can I do for you?</h2>
+            {messages.length > 0 && (
+              <button
+                onClick={startNewConversation}
+                className="mt-4 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+              >
+                🆕 New Chat
+              </button>
+            )}
           </div>
 
           {/* Minimal Trial Warnings Only */}
@@ -180,7 +269,7 @@ Please try again or contact support if the issue persists.`,
                   <div
                     className={`max-w-[80%] p-3 rounded-lg ${
                       message.role === 'user'
-                        ? 'bg-blue-500 text-white'
+                        ? 'bg-primary text-white'
                         : 'bg-white border border-gray-200'
                     }`}
                   >
@@ -193,15 +282,31 @@ Please try again or contact support if the issue persists.`,
                       </div>
                     )}
                     {message.workflow && (
-                      <div className="mt-3 p-2 bg-gray-100 rounded text-xs">
+                      <div className="mt-3 p-2 bg-gray-100 rounded text-xs space-x-2">
                         <button
                           onClick={() => {
                             navigator.clipboard.writeText(JSON.stringify(message.workflow, null, 2));
                             alert('Workflow JSON copied to clipboard!');
                           }}
-                          className="text-blue-600 hover:text-blue-800"
+                          className="text-primary hover:text-primary/80 mr-2"
                         >
-                          📋 Copy Workflow JSON
+                          📋 Copy JSON
+                        </button>
+                        <button
+                          onClick={() => {
+                            const blob = new Blob([JSON.stringify(message.workflow, null, 2)], { type: 'application/json' });
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `workflow-${Date.now()}.json`;
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                            URL.revokeObjectURL(url);
+                          }}
+                          className="text-green-600 hover:text-green-800"
+                        >
+                          💾 Download JSON
                         </button>
                       </div>
                     )}
@@ -212,8 +317,8 @@ Please try again or contact support if the issue persists.`,
                 <div className="flex justify-start">
                   <div className="bg-white border border-gray-200 p-3 rounded-lg">
                     <div className="flex items-center space-x-2">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
-                      <span className="text-sm text-gray-600">Generating workflow...</span>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                      <span className="text-sm text-gray-600">NodePilot is thinking...</span>
                     </div>
                   </div>
                 </div>

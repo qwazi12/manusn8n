@@ -1,54 +1,54 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu } from "lucide-react";
+import { Icons } from "@/components/icons";
+import Menu from "@/components/menu";
+import Drawer from "@/components/drawer";
 import { UserButton, SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
+import { cn } from "@/lib/utils";
 
 export function Header() {
-  const [isOpen, setIsOpen] = useState(false);
+  const [addBorder, setAddBorder] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 20) {
+        setAddBorder(true);
+      } else {
+        setAddBorder(false);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
 
   return (
-    <header className="w-[90%] md:w-[70%] lg:w-[75%] lg:max-w-screen-xl top-5 mx-auto sticky border z-40 rounded-2xl flex justify-between items-center p-2 bg-card shadow-md">
-      <Link href="/" className="font-bold text-lg flex items-center">
-        NodePilot
-      </Link>
+    <header className="relative sticky top-0 z-50 py-2 bg-background/60 backdrop-blur">
+      <div className="flex justify-between items-center container">
+        <Link
+          href="/"
+          title="NodePilot"
+          className="relative mr-6 flex items-center space-x-2"
+        >
+          <Icons.logo className="w-auto h-[40px]" />
+          <span className="font-bold text-xl">NodePilot</span>
+        </Link>
 
-      {/* Mobile Menu */}
-      <div className="flex items-center lg:hidden">
-        <Sheet open={isOpen} onOpenChange={setIsOpen}>
-          <SheetTrigger asChild>
-            <Button variant="ghost" size="icon">
-              <Menu className="h-6 w-6" />
-              <span className="sr-only">Toggle menu</span>
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="right" className="flex flex-col gap-6 p-6">
-            <div className="flex flex-col gap-2">
-              <Button variant="ghost" asChild>
-                <Link href="/#features" onClick={() => setIsOpen(false)}>Features</Link>
-              </Button>
-              <Button variant="ghost" asChild>
-                <Link href="/pricing" onClick={() => setIsOpen(false)}>Pricing</Link>
-              </Button>
-              <Button variant="ghost" asChild>
-                <Link href="/#contact" onClick={() => setIsOpen(false)}>Contact</Link>
-              </Button>
-              <Button variant="ghost" asChild>
-                <Link href="/#faq" onClick={() => setIsOpen(false)}>FAQ</Link>
-              </Button>
-              <Button variant="ghost" asChild>
-                <Link href="/blog" onClick={() => setIsOpen(false)}>Blog</Link>
-              </Button>
-              <Button variant="ghost" asChild>
-                <Link href="/pricing" onClick={() => setIsOpen(false)}>Pricing</Link>
-              </Button>
-            </div>
-            <div className="flex flex-col gap-2">
+        <div className="hidden lg:block">
+          <div className="flex items-center">
+            <nav className="mr-10">
+              <Menu />
+            </nav>
+
+            <div className="gap-2 flex">
               <SignedIn>
-                <Button variant="default" asChild onClick={() => setIsOpen(false)}>
+                <Button variant="default" asChild>
                   <Link href="/dashboard">Dashboard</Link>
                 </Button>
                 <UserButton afterSignOutUrl="/" />
@@ -57,50 +57,27 @@ export function Header() {
                 <SignInButton mode="modal">
                   <Button variant="outline">Login</Button>
                 </SignInButton>
-                <Button asChild>
-                  <Link href="/signup" onClick={() => setIsOpen(false)}>Sign Up Now</Link>
+                <Button asChild className="text-background flex gap-2">
+                  <Link href="/sign-up">
+                    <Icons.sparkles className="h-4 w-4" />
+                    Get Started Free
+                  </Link>
                 </Button>
               </SignedOut>
             </div>
-          </SheetContent>
-        </Sheet>
-      </div>
+          </div>
+        </div>
 
-      {/* Desktop Menu */}
-      <div className="hidden lg:flex items-center gap-1">
-        <Button variant="ghost" asChild>
-          <Link href="/#features">Features</Link>
-        </Button>
-        <Button variant="ghost" asChild>
-          <Link href="/pricing">Pricing</Link>
-        </Button>
-        <Button variant="ghost" asChild>
-          <Link href="/#contact">Contact</Link>
-        </Button>
-        <Button variant="ghost" asChild>
-          <Link href="/#faq">FAQ</Link>
-        </Button>
-        <Button variant="ghost" asChild>
-          <Link href="/blog">Blog</Link>
-        </Button>
+        <div className="mt-2 cursor-pointer block lg:hidden">
+          <Drawer />
+        </div>
       </div>
-
-      <div className="hidden lg:flex gap-3 items-center">
-        <SignedIn>
-          <Button variant="default" asChild className="h-10 md:h-[34px]">
-            <Link href="/dashboard">Dashboard</Link>
-          </Button>
-          <UserButton afterSignOutUrl="/" />
-        </SignedIn>
-        <SignedOut>
-          <SignInButton mode="modal">
-            <Button variant="outline" className="h-10 md:h-[34px]">Login</Button>
-          </SignInButton>
-          <Button asChild className="h-10 md:h-[34px]">
-            <Link href="/signup">Sign Up Now</Link>
-          </Button>
-        </SignedOut>
-      </div>
+      <hr
+        className={cn(
+          "absolute w-full bottom-0 transition-opacity duration-300 ease-in-out",
+          addBorder ? "opacity-100" : "opacity-0"
+        )}
+      />
     </header>
   );
 }

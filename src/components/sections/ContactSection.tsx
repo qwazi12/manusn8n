@@ -1,8 +1,11 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import BlurFade from "@/components/magicui/blur-fade";
 import Link from "next/link";
 import { Mail, MessageCircle, Clock } from "lucide-react";
 
@@ -29,16 +32,19 @@ function ContactMethod({ icon, title, description }: ContactMethodProps) {
 export function ContactSection() {
   return (
     <section id="contact" className="container mx-auto py-16 md:py-24">
-      <div className="text-center mb-12">
-        <h2 className="text-lg font-medium text-muted-foreground mb-2">Contact</h2>
-        <h3 className="text-3xl md:text-4xl font-bold mb-4">Get in Touch</h3>
-        <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-          Have questions or need help with automating your workflows using AI? Reach out to us, and let's build something amazing together.
-        </p>
-      </div>
+      <BlurFade delay={0.2}>
+        <div className="text-center mb-12">
+          <h2 className="text-lg font-medium text-primary mb-2">Contact</h2>
+          <h3 className="text-3xl md:text-4xl font-bold mb-4">Get in Touch</h3>
+          <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
+            Have questions or need help with automating your workflows using AI? Reach out to us, and let's build something amazing together.
+          </p>
+        </div>
+      </BlurFade>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div className="md:col-span-1 space-y-6">
+        <BlurFade delay={0.3}>
+          <div className="md:col-span-1 space-y-6">
           <ContactMethod
             icon={<MessageCircle className="h-5 w-5 text-primary" />}
             title="DM Us"
@@ -73,10 +79,12 @@ export function ContactSection() {
               </>
             }
           />
-        </div>
+          </div>
+        </BlurFade>
 
-        <div className="md:col-span-2">
-          <Card>
+        <BlurFade delay={0.4}>
+          <div className="md:col-span-2">
+            <Card className="bg-card/50 hover:bg-card/80 transition-colors">
             <CardHeader>
               <CardTitle className="text-xl">Send a Message</CardTitle>
               <CardDescription>
@@ -121,7 +129,8 @@ export function ContactSection() {
               </form>
             </CardContent>
           </Card>
-        </div>
+          </div>
+        </BlurFade>
       </div>
     </section>
   );
