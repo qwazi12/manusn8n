@@ -112,7 +112,9 @@ export async function POST(request: Request) {
             first_name: user.firstName || null,
             last_name: user.lastName || null,
             plan: 'free_user',
-            credits: 100
+            credits: 25, // Free trial: 25 credits for 7 days
+            subscription_status: 'trialing',
+            trial_ends_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
           })
           .select('id, credits, plan')
           .single();

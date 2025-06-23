@@ -12,7 +12,7 @@ serve(async (req) => {
     }
 
     // Parse the request body
-    const { email, plan = 'free_user', credits = 100, created_at } = await req.json()
+    const { email, plan = 'free_user', credits = 25, created_at } = await req.json()
 
     // Log environment variables (redacted)
     console.log('Environment variables:', {

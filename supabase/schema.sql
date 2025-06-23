@@ -13,9 +13,9 @@ CREATE TABLE IF NOT EXISTS users (
     first_name VARCHAR(100),
     last_name VARCHAR(100),
     avatar_url TEXT,
-    plan VARCHAR(20) DEFAULT 'free_user' CHECK (plan IN ('free_user', 'pro', 'payg')),
-    credits INTEGER DEFAULT 100,
-    total_credits_purchased INTEGER DEFAULT 100,
+    plan VARCHAR(20) DEFAULT 'free_user' CHECK (plan IN ('free_user', 'starter', 'pro', 'pay_as_you_go')),
+    credits INTEGER DEFAULT 25,
+    total_credits_purchased INTEGER DEFAULT 25,
     stripe_customer_id VARCHAR(255),
     subscription_status VARCHAR(20) DEFAULT 'inactive' CHECK (subscription_status IN ('active', 'inactive', 'canceled', 'past_due')),
     subscription_id VARCHAR(255),
@@ -205,15 +205,15 @@ CREATE POLICY "Service role can manage memories" ON ai_memories
 -- You can remove this section if you don't want sample data
 
 -- Sample user (for testing purposes)
-INSERT INTO users (id, email, username, first_name, last_name, plan_type, credits_remaining)
+INSERT INTO users (id, email, username, first_name, last_name, plan, credits)
 VALUES (
     '00000000-0000-0000-0000-000000000001',
     'test@nodepilot.dev',
     'testuser',
     'Test',
     'User',
-    'free',
-    75
+    'free_user',
+    25
 ) ON CONFLICT (email) DO NOTHING;
 
 -- Sample workflow
@@ -232,8 +232,8 @@ INSERT INTO credit_history (user_id, transaction_type, credits_amount, credits_b
 VALUES (
     '00000000-0000-0000-0000-000000000001',
     'purchase',
-    75,
+    25,
     0,
-    75,
+    25,
     'Initial free trial credits'
-) ON CONFLICT DO NOTHING; 
+) ON CONFLICT DO NOTHING;

@@ -85,7 +85,9 @@ export async function POST(req: Request) {
           first_name: first_name || null,
           last_name: last_name || null,
           plan: 'free_user',
-          credits: 100,
+          credits: 25, // Free trial: 25 credits for 7 days
+          subscription_status: 'trialing',
+          trial_ends_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days from now
           created_at: new Date(created_at).toISOString()
         })
         .select()
