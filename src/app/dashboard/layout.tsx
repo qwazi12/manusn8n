@@ -12,9 +12,9 @@ export default function DashboardLayout({
   return (
     <>
       <SignedIn>
-        <div className="flex h-screen bg-gray-50">
+        <div className="flex min-h-screen bg-gray-50">
           <Sidebar />
-          <main className="flex-1 overflow-y-auto">
+          <main className="flex-1">
             <div className="container mx-auto px-6 py-8">
               {children}
             </div>

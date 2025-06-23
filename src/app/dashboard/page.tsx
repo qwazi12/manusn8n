@@ -260,7 +260,7 @@ Please try again or contact support if the issue persists.`,
 
           {/* Chat Messages */}
           {messages.length > 0 && (
-            <div className="mb-6 space-y-4 max-h-96 overflow-y-auto bg-gray-50 rounded-lg p-4">
+            <div className="mb-6 space-y-4 bg-gray-50 rounded-lg p-4">
               {messages.map((message, index) => (
                 <div
                   key={index}
@@ -326,21 +326,23 @@ Please try again or contact support if the issue persists.`,
             </div>
           )}
 
-          {/* Chat input */}
-          <ChatInputBar onSendMessage={handleSendMessage} />
-          <div className="flex justify-end mt-3 mb-8">
-            {creditsLoading ? (
-              <div className="animate-pulse">
-                <div className="h-4 bg-gray-200 rounded w-16"></div>
-              </div>
-            ) : (
-              <span className="text-sm text-gray-500 font-medium">
-                {credits !== null ? `${credits} credits` : 'Loading credits...'}
-              </span>
-            )}
+          {/* Chat input - Sticky at bottom when messages exist */}
+          <div className={`${messages.length > 0 ? 'sticky bottom-0 bg-white py-4 border-t border-gray-200' : ''}`}>
+            <ChatInputBar onSendMessage={handleSendMessage} />
+            <div className="flex justify-end mt-3">
+              {creditsLoading ? (
+                <div className="animate-pulse">
+                  <div className="h-4 bg-gray-200 rounded w-16"></div>
+                </div>
+              ) : (
+                <span className="text-sm text-gray-500 font-medium">
+                  {credits !== null ? `${credits} credits` : 'Loading credits...'}
+                </span>
+              )}
+            </div>
           </div>
 
-          <div className="space-y-6">
+          <div className={`space-y-6 ${messages.length > 0 ? 'mb-32' : 'mb-8'}`}>
             <h3 className="text-lg font-semibold text-gray-900">Quick Start Templates</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Card 

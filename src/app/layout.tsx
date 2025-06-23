@@ -16,7 +16,9 @@ export const metadata: Metadata = {
   description:
     "NodePilot offers cutting-edge solutions to generate N8N workflows instantly, explore our services to boost productivity and innovation.",
   icons: {
-    icon: "/favicon.png",
+    icon: "/favicon.svg",
+    shortcut: "/favicon.svg",
+    apple: "/favicon.svg",
   },
 };
 

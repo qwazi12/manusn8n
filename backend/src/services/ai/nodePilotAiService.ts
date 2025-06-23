@@ -4,6 +4,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { config } from '../../config/config';
 import { logger } from '../../utils/logger';
 import { supabaseService } from '../database/supabaseService';
+import { workflowTemplateService, TemplateMatchResult } from '../templates/workflowTemplateService';
 
 export interface ConversationMessage {
   id: string;
@@ -318,13 +319,19 @@ Output: Optimized prompt for workflow generation`
     }
   }
 
-  // Claude Workflow Generation
+  // Claude Workflow Generation with Template Enhancement
   private async generateWorkflowWithClaude(
     request: WorkflowGenerationRequest
   ): Promise<WorkflowGenerationResponse> {
     try {
-      // Step 1: Optimize prompt using OpenAI
-      const optimizedPrompt = await this.optimizePromptForWorkflow(request);
+      // Step 1: Find matching templates for AI guidance
+      const templateMatches = await workflowTemplateService.findBestTemplateMatches(
+        request.userPrompt,
+        3 // Get top 3 matches
+      );
+
+      // Step 2: Optimize prompt using OpenAI with template context
+      const optimizedPrompt = await this.optimizePromptForWorkflow(request, templateMatches);
 
       // Step 2: Generate workflow using Claude Sonnet 4
       const workflowPrompt = this.prompts.get('main_prompt') || '';
@@ -405,6 +412,21 @@ Output: Optimized prompt for workflow generation`
               clerkUserId: request.userId,
               supabaseUserId
             });
+
+            // Record template usage analytics for AI learning
+            if (templateMatches.length > 0) {
+              const bestMatch = templateMatches[0];
+              await workflowTemplateService.recordTemplateUsage(
+                bestMatch.template.id,
+                supabaseUserId,
+                request.userPrompt,
+                bestMatch.matchScore,
+                true, // workflow was successfully generated
+                workflowGeneration.id,
+                undefined, // generation time not tracked here
+                [] // modifications not tracked here
+              );
+            }
           }
         } catch (saveError) {
           logger.error('Error saving workflow generation:', saveError);
@@ -439,16 +461,35 @@ Output: Optimized prompt for workflow generation`
     }
   }
 
-  // Optimize user prompt for workflow generation
-  private async optimizePromptForWorkflow(request: WorkflowGenerationRequest): Promise<string> {
+  // Optimize user prompt for workflow generation with template context
+  private async optimizePromptForWorkflow(
+    request: WorkflowGenerationRequest,
+    templateMatches: TemplateMatchResult[] = []
+  ): Promise<string> {
     try {
       const optimizerPrompt = this.prompts.get('workflow_prompt_optimizer') || '';
       const recentHistory = request.conversationHistory.slice(-3).map(h => `${h.role}: ${h.content}`).join('\n');
 
+      // Build template context for AI guidance
+      let templateContext = '';
+      if (templateMatches.length > 0) {
+        templateContext = '\n\nRELEVANT TEMPLATE EXAMPLES:\n';
+        templateMatches.forEach((match, index) => {
+          templateContext += `\nTemplate ${index + 1} (${match.matchScore}% match):\n`;
+          templateContext += `- Name: ${match.template.name}\n`;
+          templateContext += `- Description: ${match.template.description}\n`;
+          templateContext += `- Example prompt: ${match.template.prompt_example}\n`;
+          templateContext += `- Key nodes: ${match.template.nodes_used.join(', ')}\n`;
+          templateContext += `- Integrations: ${match.template.integrations.join(', ')}\n`;
+          templateContext += `- Match reasons: ${match.matchReasons.join(', ')}\n`;
+        });
+        templateContext += '\nUse these templates as reference to understand the user\'s intent and generate a similar but customized workflow.\n';
+      }
+
       const response = await this.openai.chat.completions.create({
         model: 'gpt-4o',
         messages: [
-          { role: 'system', content: optimizerPrompt },
+          { role: 'system', content: optimizerPrompt + templateContext },
           { role: 'user', content: `Conversation context:\n${recentHistory}\n\nUser's workflow request: ${request.userPrompt}` }
         ],
         temperature: 0.3,
