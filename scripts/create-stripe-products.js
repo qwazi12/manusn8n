@@ -1,7 +1,17 @@
 const Stripe = require('stripe');
 require('dotenv').config({ path: '.env.local' });
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+// Ensure we're using LIVE keys
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+console.log('Using Stripe key:', stripeSecretKey ? stripeSecretKey.substring(0, 12) + '...' : 'NOT FOUND');
+
+if (!stripeSecretKey || !stripeSecretKey.startsWith('sk_live_')) {
+  console.error('❌ ERROR: Not using live Stripe key!');
+  console.error('Current key starts with:', stripeSecretKey ? stripeSecretKey.substring(0, 8) : 'NONE');
+  process.exit(1);
+}
+
+const stripe = new Stripe(stripeSecretKey);
 
 async function createProducts() {
   try {

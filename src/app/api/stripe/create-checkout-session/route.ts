@@ -28,12 +28,20 @@ const STRIPE_PRICES = {
 export async function POST(request: NextRequest) {
   try {
     console.log('=== Checkout Session Request ===');
+    console.log('Environment check:', {
+      hasStripeKey: !!process.env.STRIPE_SECRET_KEY,
+      stripeKeyPrefix: process.env.STRIPE_SECRET_KEY?.substring(0, 8),
+      hasSupabaseUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+      hasSupabaseKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+      hasAppUrl: !!process.env.NEXT_PUBLIC_APP_URL
+    });
+
     const { userId } = await auth();
     console.log('User ID:', userId);
 
     if (!userId) {
       console.log('No user ID - unauthorized');
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized - Please sign in first' }, { status: 401 });
     }
 
     const body = await request.json();
@@ -48,14 +56,21 @@ export async function POST(request: NextRequest) {
     console.log('Plan ID:', planId);
 
     // Get user from Supabase
+    console.log('Looking up user in Supabase with clerk_id:', userId);
     const { data: user, error: userError } = await supabase
       .from('users')
       .select('*')
       .eq('clerk_id', userId)
       .single();
 
+    console.log('Supabase user lookup result:', { user: !!user, error: userError });
+
     if (userError || !user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      console.log('User not found in Supabase:', userError);
+      return NextResponse.json({
+        error: 'User not found in database. Please contact support.',
+        details: userError?.message
+      }, { status: 404 });
     }
 
     // Get or create Stripe customer
@@ -124,6 +139,12 @@ export async function POST(request: NextRequest) {
       automatic_tax: {
         enabled: true, // Enable automatic tax as requested
       },
+      // Fix for automatic tax - allow Stripe to collect and save address
+      customer_update: {
+        address: 'auto', // Automatically save address entered in checkout
+        name: 'auto',    // Also save name updates
+      },
+      billing_address_collection: 'required', // Require billing address for tax calculation
       success_url: successUrl || `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?success=true&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: cancelUrl || `${process.env.NEXT_PUBLIC_APP_URL}/pricing?canceled=true`,
       metadata: {
