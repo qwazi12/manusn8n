@@ -5,8 +5,7 @@ import { SignedIn, SignedOut, RedirectToSignIn, useUser } from "@clerk/nextjs";
 import { useState, useEffect } from "react";
 import ChatInputBar from "@/components/chat/ChatInputBar";
 import { TrialStatus } from "@/components/trial/TrialStatus";
-import { BillingStatus } from "@/components/billing/BillingStatus";
-import { UpgradePrompt } from "@/components/billing/UpgradePrompt";
+
 
 interface Message {
   role: 'user' | 'assistant';
@@ -36,9 +35,7 @@ export default function DashboardPage() {
   const [conversations, setConversations] = useState<any[]>([]);
   const [loadingConversation, setLoadingConversation] = useState(false);
 
-  // State for upgrade prompt
-  const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
-  const [upgradeReason, setUpgradeReason] = useState<'credits_low' | 'trial_expired' | 'feature_locked'>('trial_expired');
+
 
   // Fetch user credits and load conversation history on component mount
   useEffect(() => {
@@ -249,34 +246,30 @@ Please try again or contact support if the issue persists.`,
           <div className="mb-10 text-center">
             <h1 className="text-4xl font-bold text-gray-900 mb-2">Hello {userName}</h1>
             <h2 className="text-2xl text-gray-700 font-normal">What can I do for you?</h2>
-            {messages.length > 0 && (
+            <div className="flex justify-center items-center gap-4 mt-4">
+              {messages.length > 0 && (
+                <button
+                  onClick={startNewConversation}
+                  className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+                >
+                  🆕 New Chat
+                </button>
+              )}
               <button
-                onClick={startNewConversation}
-                className="mt-4 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+                onClick={() => setShowBillingDashboard(!showBillingDashboard)}
+                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
               >
-                🆕 New Chat
+                {showBillingDashboard ? '📊 Hide Billing' : '💳 Billing'}
               </button>
-            )}
+            </div>
           </div>
 
-          {/* Billing Status Card */}
-          <div className="mb-6">
-            <BillingStatus />
-          </div>
+
 
           {/* Minimal Trial Warnings Only */}
           {trialStatus?.show_blocking_modal && (
-            <TrialStatus onTrialExpired={() => setShowUpgradePrompt(true)} />
+            <TrialStatus onTrialExpired={() => window.location.href = '/pricing'} />
           )}
-
-          {/* Upgrade Prompt Modal */}
-          <UpgradePrompt
-            isOpen={showUpgradePrompt}
-            onClose={() => setShowUpgradePrompt(false)}
-            reason={upgradeReason}
-            creditsRemaining={userCredits || 0}
-            daysRemaining={trialStatus?.days_remaining || 0}
-          />
 
           {/* Chat Messages */}
           {messages.length > 0 && (

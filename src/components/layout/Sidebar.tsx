@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, LayoutDashboard, List, Settings, LogOut, User } from 'lucide-react';
+import { Menu, X, LayoutDashboard, List, Settings, LogOut, User, CreditCard } from 'lucide-react';
 import { useUser, useClerk } from '@clerk/nextjs';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -85,6 +85,23 @@ const SidebarContent = ({ isCollapsed = false }: { isCollapsed?: boolean }) => {
             Profile
           </span>
         </button>
+        <Link
+          href="/dashboard/billing"
+          className={cn(
+            "flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-200",
+            pathname === "/dashboard/billing"
+              ? "bg-primary/10 text-primary"
+              : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+          )}
+        >
+          <CreditCard className={cn("w-5 h-5", pathname === "/dashboard/billing" ? "text-primary" : "")}/>
+          <span className={cn(
+            "text-sm font-medium transition-opacity duration-200",
+            isCollapsed ? "opacity-0 w-0" : "opacity-100"
+          )}>
+            Billing
+          </span>
+        </Link>
         <button
           type="button"
           onClick={handleSignOut}
