@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "format": "bunx biome format --write"
+    "format": "bunx biome format --write",
+    "test:rag": "tsx src/scripts/testRagSystem.ts",
+    "ingest:docs": "tsx src/scripts/ingestDocumentation.ts"
   },
   "dependencies": {
     "@clerk/clerk-sdk-node": "^4.13.23",
@@ -47,6 +49,7 @@
     "eslint-config-next": "15.1.7",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
+    "tsx": "^4.7.0",
     "typescript": "^5"
   }
 }
