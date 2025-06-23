@@ -5,6 +5,8 @@ import { SignedIn, SignedOut, RedirectToSignIn, useUser } from "@clerk/nextjs";
 import { useState, useEffect } from "react";
 import ChatInputBar from "@/components/chat/ChatInputBar";
 import { TrialStatus } from "@/components/trial/TrialStatus";
+import { BillingStatus } from "@/components/billing/BillingStatus";
+import { UpgradePrompt } from "@/components/billing/UpgradePrompt";
 
 interface Message {
   role: 'user' | 'assistant';
@@ -33,6 +35,10 @@ export default function DashboardPage() {
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
   const [conversations, setConversations] = useState<any[]>([]);
   const [loadingConversation, setLoadingConversation] = useState(false);
+
+  // State for upgrade prompt
+  const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
+  const [upgradeReason, setUpgradeReason] = useState<'credits_low' | 'trial_expired' | 'feature_locked'>('trial_expired');
 
   // Fetch user credits and load conversation history on component mount
   useEffect(() => {
@@ -253,10 +259,24 @@ Please try again or contact support if the issue persists.`,
             )}
           </div>
 
+          {/* Billing Status Card */}
+          <div className="mb-6">
+            <BillingStatus />
+          </div>
+
           {/* Minimal Trial Warnings Only */}
           {trialStatus?.show_blocking_modal && (
-            <TrialStatus onTrialExpired={() => {}} />
+            <TrialStatus onTrialExpired={() => setShowUpgradePrompt(true)} />
           )}
+
+          {/* Upgrade Prompt Modal */}
+          <UpgradePrompt
+            isOpen={showUpgradePrompt}
+            onClose={() => setShowUpgradePrompt(false)}
+            reason={upgradeReason}
+            creditsRemaining={userCredits || 0}
+            daysRemaining={trialStatus?.days_remaining || 0}
+          />
 
           {/* Chat Messages */}
           {messages.length > 0 && (
