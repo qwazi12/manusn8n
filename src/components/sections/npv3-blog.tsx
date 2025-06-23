@@ -9,7 +9,7 @@ const blogPosts = [
     title: "Introducing NodePilot",
     excerpt: "Meet NodePilot — your AI-powered automation co-pilot built to help you create powerful n8n workflows effortlessly.",
     date: "2 months ago",
-    slug: "/blog/introducing-nodepilot",
+    slug: "/blog",
     image: "/dashboard.png"
   }
 ];

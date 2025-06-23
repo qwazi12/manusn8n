@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { Resend } from 'resend';
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(request: NextRequest) {
   try {
@@ -64,22 +67,40 @@ Timestamp: ${new Date().toISOString()}
       `
     };
 
-    // For now, we'll log the email content and return success
-    // In production, you would integrate with an email service like SendGrid, Resend, or Nodemailer
-    console.log('Contact form submission:', emailContent);
+    // Send email using Resend
+    try {
+      const emailResult = await resend.emails.send({
+        from: 'NodePilot Contact <noreply@nodepilot.dev>',
+        to: ['nodepilotdev@gmail.com'],
+        replyTo: email,
+        subject: `NodePilot Contact Form: ${subject}`,
+        html: emailContent.html,
+        text: emailContent.text
+      });
 
-    // You can integrate with email services here:
-    // - SendGrid: https://sendgrid.com/
-    // - Resend: https://resend.com/
-    // - Nodemailer with Gmail SMTP
-    
-    return NextResponse.json(
-      { 
-        message: 'Message sent successfully! We will get back to you soon.',
-        success: true 
-      },
-      { status: 200 }
-    );
+      console.log('Email sent successfully:', emailResult);
+
+      return NextResponse.json(
+        {
+          message: 'Message sent successfully! We will get back to you soon.',
+          success: true
+        },
+        { status: 200 }
+      );
+    } catch (emailError) {
+      console.error('Failed to send email:', emailError);
+
+      // Log the submission for manual follow-up
+      console.log('Contact form submission (email failed):', emailContent);
+
+      return NextResponse.json(
+        {
+          message: 'Message received! We will get back to you soon.',
+          success: true
+        },
+        { status: 200 }
+      );
+    }
 
   } catch (error) {
     console.error('Contact form error:', error);
