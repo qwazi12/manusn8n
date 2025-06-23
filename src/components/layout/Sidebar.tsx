@@ -129,7 +129,7 @@ const Sidebar = () => {
         onMouseLeave={() => setIsCollapsed(true)}
         className="hidden md:flex flex-col h-screen bg-gray-50 border-r border-gray-200 relative"
       >
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1">
           <SidebarContent isCollapsed={isCollapsed} />
         </div>
 
@@ -171,7 +171,7 @@ const Sidebar = () => {
                   </button>
                 </div>
 
-                <div className="flex-1 overflow-y-auto">
+                <div className="flex-1">
                   <SidebarContent />
                 </div>
 

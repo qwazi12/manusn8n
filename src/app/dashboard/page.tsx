@@ -327,7 +327,7 @@ Please try again or contact support if the issue persists.`,
           )}
 
           {/* Chat input - Sticky at bottom when messages exist */}
-          <div className={`${messages.length > 0 ? 'sticky bottom-0 bg-white py-4 border-t border-gray-200' : ''}`}>
+          <div className={`${messages.length > 0 ? 'sticky bottom-0 bg-gray-50 py-4 border-t border-gray-200' : ''}`}>
             <ChatInputBar onSendMessage={handleSendMessage} />
             <div className="flex justify-end mt-3">
               {creditsLoading ? (

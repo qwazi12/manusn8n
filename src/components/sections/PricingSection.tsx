@@ -107,7 +107,7 @@ export function PricingSection() {
         </div>
       </BlurFade>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-8 max-w-7xl mx-auto">
         <BlurFade delay={0.3}>
           <PricingTier
             name="Free Trial"
@@ -115,10 +115,10 @@ export function PricingSection() {
             price="$0"
             priceDetail="/trial"
             features={[
-              "100 credits included",
+              "25 credits included",
               "Natural language → n8n JSON workflow generation",
               "Step-by-step guide with each workflow",
-              "Basic support",
+              "Basic support via documentation",
               "7-day trial period"
             ]}
             buttonText="Start Free Trial"
@@ -128,18 +128,39 @@ export function PricingSection() {
 
         <BlurFade delay={0.4}>
           <PricingTier
+            name="Starter Plan"
+            description="For individuals and small projects"
+            price="$14"
+            priceDetail="/month"
+            features={[
+              "300 credits/month",
+              "All Free Trial features",
+              "Email support",
+              "Workflow history",
+              "Basic templates library",
+              "Export workflows to n8n",
+              "GPT-4o powered conversations"
+            ]}
+            buttonText="Choose Starter"
+            buttonLink="/dashboard"
+          />
+        </BlurFade>
+
+        <BlurFade delay={0.5}>
+          <PricingTier
             name="Pro Plan"
-            description="For power users and teams"
-            price="$17.99"
+            description="For power users and growing teams"
+            price="$21"
             priceDetail="/month"
             features={[
               "500 credits/month",
-              "All Free features",
+              "All Starter features",
               "Priority AI processing",
               "Upload files/images for smarter prompts",
               "Retain workflows",
               "Multi-turn refinement chat",
-              "Priority support"
+              "Priority support",
+              "Advanced templates library"
             ]}
             buttonText="Upgrade to Pro"
             buttonLink="/dashboard"
@@ -147,17 +168,18 @@ export function PricingSection() {
           />
         </BlurFade>
 
-        <BlurFade delay={0.5}>
+        <BlurFade delay={0.6}>
           <PricingTier
             name="Pay-As-You-Go"
             description="Great for occasional users"
-            price="$5"
-            priceDetail="per 100 requests"
+            price="$8"
+            priceDetail="per 100 credits"
             features={[
               "No subscription required",
               "All standard generation features",
               "Credits expire after 30 days",
-              "Flexible usage"
+              "Flexible usage",
+              "Perfect for testing or sporadic use"
             ]}
             buttonText="Buy Credits"
             buttonLink="/dashboard"
