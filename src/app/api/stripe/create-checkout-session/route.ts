@@ -12,11 +12,17 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-// Stripe Product and Price IDs (we'll create these programmatically)
+// Stripe Product and Price IDs
 const STRIPE_PRODUCTS = {
-  starter: 'prod_SYNJzWGm9FClS6',
-  pro: 'prod_SYNJcSN1ig38TV', 
-  credits: 'prod_SYNKC8ZBjKaRy2'
+  starter: 'prod_SYO0OTVNV9inJS',
+  pro: 'prod_SYO0uvEhOoc2xp',
+  credits: 'prod_SYO0QudWpC1X9b'
+};
+
+const STRIPE_PRICES = {
+  starter: 'price_1RdHEaKgH5HMzGLedHZj5J04',
+  pro: 'price_1RdHEaKgH5HMzGLe2XsFGQGW',
+  credits: 'price_1RdHEbKgH5HMzGLeORcbP045'
 };
 
 export async function POST(request: NextRequest) {
@@ -74,68 +80,22 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Create or get price based on plan
+    // Get price based on plan
     let priceId: string;
     let mode: 'subscription' | 'payment' = 'subscription';
 
     switch (planId) {
       case 'starter':
-        // Create price if it doesn't exist
-        try {
-          const price = await stripe.prices.create({
-            product: STRIPE_PRODUCTS.starter,
-            unit_amount: 1400, // $14.00
-            currency: 'usd',
-            recurring: { interval: 'month' },
-          });
-          priceId = price.id;
-        } catch (error: any) {
-          // If price already exists, list and use existing
-          const prices = await stripe.prices.list({
-            product: STRIPE_PRODUCTS.starter,
-            active: true,
-          });
-          priceId = prices.data[0]?.id;
-          if (!priceId) throw new Error('Could not create or find starter price');
-        }
+        priceId = STRIPE_PRICES.starter;
         break;
 
       case 'pro':
-        try {
-          const price = await stripe.prices.create({
-            product: STRIPE_PRODUCTS.pro,
-            unit_amount: 2100, // $21.00
-            currency: 'usd',
-            recurring: { interval: 'month' },
-          });
-          priceId = price.id;
-        } catch (error: any) {
-          const prices = await stripe.prices.list({
-            product: STRIPE_PRODUCTS.pro,
-            active: true,
-          });
-          priceId = prices.data[0]?.id;
-          if (!priceId) throw new Error('Could not create or find pro price');
-        }
+        priceId = STRIPE_PRICES.pro;
         break;
 
       case 'pay_as_you_go':
         mode = 'payment';
-        try {
-          const price = await stripe.prices.create({
-            product: STRIPE_PRODUCTS.credits,
-            unit_amount: 800, // $8.00
-            currency: 'usd',
-          });
-          priceId = price.id;
-        } catch (error: any) {
-          const prices = await stripe.prices.list({
-            product: STRIPE_PRODUCTS.credits,
-            active: true,
-          });
-          priceId = prices.data[0]?.id;
-          if (!priceId) throw new Error('Could not create or find credits price');
-        }
+        priceId = STRIPE_PRICES.credits;
         break;
 
       default:
