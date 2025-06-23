@@ -203,7 +203,8 @@ export default function DashboardPage() {
           if (typeof error.json === 'function') {
             const errorData = await error.json();
             if (errorData.upgrade_required) {
-              setTrialExpired(true);
+              // Redirect to pricing page for upgrade
+              window.location.href = '/pricing';
               const errorMessage: Message = {
                 role: 'assistant',
                 content: `❌ **${errorData.error}**
@@ -246,22 +247,14 @@ Please try again or contact support if the issue persists.`,
           <div className="mb-10 text-center">
             <h1 className="text-4xl font-bold text-gray-900 mb-2">Hello {userName}</h1>
             <h2 className="text-2xl text-gray-700 font-normal">What can I do for you?</h2>
-            <div className="flex justify-center items-center gap-4 mt-4">
-              {messages.length > 0 && (
-                <button
-                  onClick={startNewConversation}
-                  className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
-                >
-                  🆕 New Chat
-                </button>
-              )}
+            {messages.length > 0 && (
               <button
-                onClick={() => setShowBillingDashboard(!showBillingDashboard)}
-                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                onClick={startNewConversation}
+                className="mt-4 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
               >
-                {showBillingDashboard ? '📊 Hide Billing' : '💳 Billing'}
+                🆕 New Chat
               </button>
-            </div>
+            )}
           </div>
 
 
