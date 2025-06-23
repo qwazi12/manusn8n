@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 export async function POST(request: NextRequest) {
   try {
@@ -67,31 +67,44 @@ Timestamp: ${new Date().toISOString()}
       `
     };
 
-    // Send email using Resend
-    try {
-      const emailResult = await resend.emails.send({
-        from: 'NodePilot Contact <noreply@nodepilot.dev>',
-        to: ['nodepilotdev@gmail.com'],
-        replyTo: email,
-        subject: `NodePilot Contact Form: ${subject}`,
-        html: emailContent.html,
-        text: emailContent.text
-      });
+    // Send email using Resend (if API key is available)
+    if (resend) {
+      try {
+        const emailResult = await resend.emails.send({
+          from: 'NodePilot Contact <noreply@nodepilot.dev>',
+          to: ['nodepilotdev@gmail.com'],
+          replyTo: email,
+          subject: `NodePilot Contact Form: ${subject}`,
+          html: emailContent.html,
+          text: emailContent.text
+        });
 
-      console.log('Email sent successfully:', emailResult);
+        console.log('Email sent successfully:', emailResult);
 
-      return NextResponse.json(
-        {
-          message: 'Message sent successfully! We will get back to you soon.',
-          success: true
-        },
-        { status: 200 }
-      );
-    } catch (emailError) {
-      console.error('Failed to send email:', emailError);
+        return NextResponse.json(
+          {
+            message: 'Message sent successfully! We will get back to you soon.',
+            success: true
+          },
+          { status: 200 }
+        );
+      } catch (emailError) {
+        console.error('Failed to send email:', emailError);
 
-      // Log the submission for manual follow-up
-      console.log('Contact form submission (email failed):', emailContent);
+        // Log the submission for manual follow-up
+        console.log('Contact form submission (email failed):', emailContent);
+
+        return NextResponse.json(
+          {
+            message: 'Message received! We will get back to you soon.',
+            success: true
+          },
+          { status: 200 }
+        );
+      }
+    } else {
+      // No email service configured, just log the submission
+      console.log('Contact form submission (no email service):', emailContent);
 
       return NextResponse.json(
         {
