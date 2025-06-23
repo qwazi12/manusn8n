@@ -1,12 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { BorderBeam } from "@/components/magicui/border-beam";
 import BlurFade from "@/components/magicui/blur-fade";
 import Link from "next/link";
-import { Check, Star } from "lucide-react";
-import { SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
+import { Check, Star, Loader2 } from "lucide-react";
+import { SignedIn, SignedOut, SignInButton, useUser } from "@clerk/nextjs";
 
 interface PricingTierProps {
   name: string;
@@ -15,7 +16,8 @@ interface PricingTierProps {
   priceDetail: string;
   features: string[];
   buttonText: string;
-  buttonLink: string;
+  buttonLink?: string;
+  planId?: string; // Add planId for Stripe integration
   popular?: boolean;
 }
 
@@ -27,8 +29,54 @@ function PricingTier({
   features,
   buttonText,
   buttonLink,
+  planId,
   popular,
 }: PricingTierProps) {
+  const { user, isSignedIn } = useUser();
+  const [loading, setLoading] = useState(false);
+
+  const handlePlanSelect = async () => {
+    if (!isSignedIn) {
+      // Use existing SignInButton behavior
+      return;
+    }
+
+    // Handle free trial - redirect to dashboard
+    if (planId === 'free_trial' || !planId) {
+      window.location.href = '/dashboard';
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const response = await fetch('/api/stripe/create-checkout-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          planId: planId,
+          successUrl: `${window.location.origin}/dashboard?success=true`,
+          cancelUrl: `${window.location.origin}/pricing?canceled=true`,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.url) {
+        window.location.href = data.url;
+      } else {
+        console.error('Error creating checkout session:', data.error);
+        alert('Error creating checkout session. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('An error occurred. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
     <Card className={`relative border ${popular ? 'border-primary/50 shadow-lg scale-105' : 'border-border'} flex flex-col h-full bg-card/50 hover:bg-card/80 transition-all duration-300 group`}>
       {popular && (
@@ -74,9 +122,17 @@ function PricingTier({
           <Button
             className={`w-full ${popular ? 'bg-primary hover:bg-primary/90' : ''}`}
             variant={popular ? 'default' : 'outline'}
-            asChild
+            onClick={handlePlanSelect}
+            disabled={loading}
           >
-            <Link href={buttonLink}>{buttonText}</Link>
+            {loading ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Processing...
+              </>
+            ) : (
+              buttonText
+            )}
           </Button>
         </SignedIn>
         <SignedOut>
@@ -123,6 +179,7 @@ export function PricingSection() {
             ]}
             buttonText="Start Free Trial"
             buttonLink="/dashboard"
+            planId="free_trial"
           />
         </BlurFade>
 
@@ -141,7 +198,7 @@ export function PricingSection() {
               "Export workflows to n8n"
             ]}
             buttonText="Choose Starter"
-            buttonLink="/dashboard"
+            planId="starter"
           />
         </BlurFade>
 
@@ -162,7 +219,7 @@ export function PricingSection() {
               "Advanced templates library"
             ]}
             buttonText="Upgrade to Pro"
-            buttonLink="/dashboard"
+            planId="pro"
             popular
           />
         </BlurFade>
@@ -181,7 +238,7 @@ export function PricingSection() {
               "Perfect for testing or sporadic use"
             ]}
             buttonText="Buy Credits"
-            buttonLink="/dashboard"
+            planId="pay_as_you_go"
           />
         </BlurFade>
       </div>
