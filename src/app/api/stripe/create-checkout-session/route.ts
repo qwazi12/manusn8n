@@ -27,17 +27,25 @@ const STRIPE_PRICES = {
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('=== Checkout Session Request ===');
     const { userId } = await auth();
-    
+    console.log('User ID:', userId);
+
     if (!userId) {
+      console.log('No user ID - unauthorized');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { planId, successUrl, cancelUrl } = await request.json();
+    const body = await request.json();
+    console.log('Request body:', body);
+    const { planId, successUrl, cancelUrl } = body;
 
     if (!planId) {
+      console.log('No plan ID provided');
       return NextResponse.json({ error: 'Plan ID is required' }, { status: 400 });
     }
+
+    console.log('Plan ID:', planId);
 
     // Get user from Supabase
     const { data: user, error: userError } = await supabase
@@ -139,8 +147,22 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Error creating checkout session:', error);
+    console.error('Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      userId,
+      env: {
+        hasStripeKey: !!process.env.STRIPE_SECRET_KEY,
+        hasSupabaseUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+        hasSupabaseKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+        hasAppUrl: !!process.env.NEXT_PUBLIC_APP_URL
+      }
+    });
     return NextResponse.json(
-      { error: 'Internal server error' },
+      {
+        error: 'Internal server error',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     );
   }
