@@ -349,91 +349,97 @@ Please try again or contact support if the issue persists.`,
           </div>
 
           <div className={`space-y-6 ${messages.length > 0 ? 'mb-32' : 'mb-8'}`}>
-            <h3 className="text-lg font-semibold text-gray-900">Quick Start Templates</h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-gray-900">Quick Start Templates</h3>
+              <a
+                href="/templates"
+                className="text-primary hover:text-primary/80 font-medium text-sm flex items-center gap-1"
+              >
+                View All Templates
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </a>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Card 
+              <Card
                 className="bg-gray-900 border-0 hover:bg-gray-800 transition-colors cursor-pointer group"
                 onClick={() => handleSendMessage(
-                  "Create an automated marketing campaign workflow that integrates email, social media, and CRM platforms for coordinated multi-channel marketing efforts.",
+                  "Create an advanced AI reasoning system with Think tools for JSON validation, output verification, and structured content generation using multiple AI agents.",
                   []
                 )}
               >
                 <CardHeader>
                   <div className="flex items-center gap-3">
                     <div className="p-2 rounded-lg bg-primary/10">
-                      <svg className="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
+                      <span className="text-lg">🤖</span>
                     </div>
                     <div>
-                      <CardTitle className="text-white group-hover:text-primary transition-colors">Automate Marketing Campaigns</CardTitle>
-                      <CardDescription className="text-gray-400">for managing multi-channel marketing efforts</CardDescription>
+                      <div className="flex items-center gap-2">
+                        <CardTitle className="text-white group-hover:text-primary transition-colors">Think Tool AI System</CardTitle>
+                        <span className="text-xs bg-yellow-500 text-black px-2 py-1 rounded">⭐ Featured</span>
+                      </div>
+                      <CardDescription className="text-gray-400">Advanced AI reasoning with validation</CardDescription>
                     </div>
                   </div>
                 </CardHeader>
               </Card>
 
-              <Card 
+              <Card
                 className="bg-gray-900 border-0 hover:bg-gray-800 transition-colors cursor-pointer group"
                 onClick={() => handleSendMessage(
-                  "Build an AI-powered lead scoring system that analyzes customer data, interaction history, and behavior patterns to prioritize and rank sales leads.",
+                  "Build a YouTube content curation system that automatically discovers, analyzes, and curates videos based on keywords with AI-powered quality scoring.",
                   []
                 )}
               >
                 <CardHeader>
                   <div className="flex items-center gap-3">
                     <div className="p-2 rounded-lg bg-primary/10">
-                      <svg className="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                      </svg>
+                      <span className="text-lg">📝</span>
                     </div>
                     <div>
-                      <CardTitle className="text-white group-hover:text-primary transition-colors">AI-Powered Lead Scoring</CardTitle>
-                      <CardDescription className="text-gray-400">for prioritizing sales leads</CardDescription>
+                      <CardTitle className="text-white group-hover:text-primary transition-colors">YouTube Curator AI</CardTitle>
+                      <CardDescription className="text-gray-400">Automated content discovery and curation</CardDescription>
                     </div>
                   </div>
                 </CardHeader>
               </Card>
 
-              <Card 
+              <Card
                 className="bg-gray-900 border-0 hover:bg-gray-800 transition-colors cursor-pointer group"
                 onClick={() => handleSendMessage(
-                  "Design a personalized recommendation engine that analyzes user behavior and preferences to generate tailored content and product suggestions for improved engagement.",
+                  "Create an infinite leads generation system that captures, scores, and nurtures leads automatically with multi-channel follow-up sequences.",
                   []
                 )}
               >
                 <CardHeader>
                   <div className="flex items-center gap-3">
                     <div className="p-2 rounded-lg bg-primary/10">
-                      <svg className="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                      </svg>
+                      <span className="text-lg">💼</span>
                     </div>
                     <div>
-                      <CardTitle className="text-white group-hover:text-primary transition-colors">Generate Personalized Recommendations</CardTitle>
-                      <CardDescription className="text-gray-400">for improving user engagement</CardDescription>
+                      <CardTitle className="text-white group-hover:text-primary transition-colors">Infinite Leads Generator</CardTitle>
+                      <CardDescription className="text-gray-400">Automated lead capture and nurturing</CardDescription>
                     </div>
                   </div>
                 </CardHeader>
               </Card>
 
-              <Card 
+              <Card
                 className="bg-gray-900 border-0 hover:bg-gray-800 transition-colors cursor-pointer group"
                 onClick={() => handleSendMessage(
-                  "Set up an automated social media content scheduler that manages post timing, content distribution, and engagement tracking across multiple platforms.",
+                  "Build a faceless content creation system that generates AI-powered videos, images, and text content for social media automation.",
                   []
                 )}
               >
                 <CardHeader>
                   <div className="flex items-center gap-3">
                     <div className="p-2 rounded-lg bg-primary/10">
-                      <svg className="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
+                      <span className="text-lg">🎬</span>
                     </div>
                     <div>
-                      <CardTitle className="text-white group-hover:text-primary transition-colors">Social Media Content Scheduler</CardTitle>
-                      <CardDescription className="text-gray-400">for automating social media posts</CardDescription>
+                      <CardTitle className="text-white group-hover:text-primary transition-colors">Faceless Content Creator</CardTitle>
+                      <CardDescription className="text-gray-400">AI-powered content generation</CardDescription>
                     </div>
                   </div>
                 </CardHeader>

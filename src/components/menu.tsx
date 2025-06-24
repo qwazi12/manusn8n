@@ -20,6 +20,10 @@ const menuItems = [
     href: "/#features",
   },
   {
+    label: "Templates",
+    href: "/templates",
+  },
+  {
     label: "Pricing",
     href: "/pricing",
   },
