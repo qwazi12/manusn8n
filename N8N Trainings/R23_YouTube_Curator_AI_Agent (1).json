@@ -1,0 +1,598 @@
+{
+  "name": "R23 | YouTube Curator AI Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtDay": [
+                6
+              ]
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -140,
+        -160
+      ],
+      "id": "2ed3c7e4-7672-494b-99f4-5508d7282495",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1EcrCmf6u5xTbOn5BIp57bBD-tN65MSJjAwisCAEBZF0",
+          "mode": "list",
+          "cachedResultName": "R23 | YouTube Curator AI Agent",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1EcrCmf6u5xTbOn5BIp57bBD-tN65MSJjAwisCAEBZF0/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1EcrCmf6u5xTbOn5BIp57bBD-tN65MSJjAwisCAEBZF0/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "title": "={{ $json.title }}",
+            "id": "={{ $('Get YT Details').item.json.items[0].id }}",
+            "video_description": "={{ $('Get YT Details').item.json.items[0].snippet.description }}",
+            "added_date": "={{ new Date().toISOString().split('T')[0] }}",
+            "youtubeUrl": "={{ $json.youtubeUrl }}",
+            "publishedAt": "={{ $json.publishedAt }}",
+            "views": "={{ $json.views }}",
+            "likes": "={{ $json.likes }}",
+            "comments": "={{ $json.comments }}",
+            "likeRate": "={{ $json.likeRate }}",
+            "commentRate": "={{ $json.commentRate }}",
+            "viewsPerHour": "={{ $json.viewsPerHour }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "title",
+              "displayName": "title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "youtubeUrl",
+              "displayName": "youtubeUrl",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "publishedAt",
+              "displayName": "publishedAt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "views",
+              "displayName": "views",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "likes",
+              "displayName": "likes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "comments",
+              "displayName": "comments",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "likeRate",
+              "displayName": "likeRate",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "commentRate",
+              "displayName": "commentRate",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "viewsPerHour",
+              "displayName": "viewsPerHour",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "added_date",
+              "displayName": "added_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "video_description",
+              "displayName": "video_description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        40,
+        40
+      ],
+      "id": "5d36ad38-004d-4416-b7f8-003232b3899b",
+      "name": "Add to Sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "WmDBwEhcrLeG9D67",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C08D5J4GF9D",
+          "mode": "list",
+          "cachedResultName": "youtube-ideas"
+        },
+        "text": "={{ $json.text }}",
+        "otherOptions": {
+          "unfurl_links": true
+        }
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        360,
+        220
+      ],
+      "id": "6445c37d-6023-430b-ba5b-81087e1baab1",
+      "name": "Send on Slack",
+      "webhookId": "64dc2131-ff3b-444f-98c8-12af2c91ecc3",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "sqVfoM5ryQnJQP2b",
+          "name": "Slack account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Extract data for calculations\nconst views = Number($json.items[0].statistics.viewCount || 0);\nconst likes = Number($json.items[0].statistics.likeCount || 0);\nconst comments = Number($json.items[0].statistics.commentCount || 0);\n\n// Extract and parse publish date\nconst publishedAt = $json.items[0].snippet.publishedAt || '';\nconst publishTime = new Date(publishedAt).getTime();\nconst now = Date.now();\nconst hoursSincePublish = (now - publishTime) / (1000 * 60 * 60); // Convert milliseconds to hours\n\n// Calculate engagement metrics\nconst likeRate = views > 0 ? (likes / views) * 100 : 0; // Like percentage\nconst commentRate = views > 0 ? (comments / views) * 100 : 0; // Comment percentage\nconst viewsPerHour = hoursSincePublish > 0 ? views / hoursSincePublish : 0; // Views per hour\n\n// Extract title and video ID\nconst title = $json.items[0].snippet.title || '';\nconst videoId = $json.items[0].id || '';\nconst youtubeUrl = `https://www.youtube.com/watch?v=${videoId}`;\n\n// Return the refined data\nreturn {\n  title,\n  youtubeUrl,\n  publishedAt,\n  views,\n  likes,\n  comments,\n  likeRate,\n  commentRate,\n  viewsPerHour\n\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        400,
+        -160
+      ],
+      "id": "dd34d491-3799-412d-8f59-7cfb84da79eb",
+      "name": "Calc Metrics",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        240,
+        400
+      ],
+      "id": "424785cb-bf4b-4eec-b045-f7b0f74b31e1",
+      "name": "AI Engine",
+      "credentials": {
+        "openAiApi": {
+          "id": "hIPs18Fv3Ii8pQFQ",
+          "name": "OpenAi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "e495a1ce-b66b-44af-aa46-f3039e50bae9",
+              "leftValue": "={{ $json.likeRate }}",
+              "rightValue": 7,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            },
+            {
+              "id": "202f333d-7a8d-45d5-b796-6de8f660f763",
+              "leftValue": "={{ $json.commentRate }}",
+              "rightValue": 0.15,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            },
+            {
+              "id": "eddeb4ca-f709-4d96-a569-278040e82fe9",
+              "leftValue": "={{ $json.views }}",
+              "rightValue": 1500,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        580,
+        -160
+      ],
+      "id": "9b630adf-5aac-48bd-a8c9-da3c08fe893e",
+      "name": "Only Good Videos"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "6d35d63d-a918-4e1d-b5de-03a493c91818",
+              "leftValue": "={{ $json.likeRate }}",
+              "rightValue": "=8.8",
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        400,
+        40
+      ],
+      "id": "e4f7dbfc-8b43-4874-b5b1-f31c4f914b33",
+      "name": "Only Top Videos"
+    },
+    {
+      "parameters": {
+        "resource": "video",
+        "returnAll": true,
+        "filters": {
+          "publishedAfter": "={{ new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().trim() }}",
+          "q": "n8n"
+        },
+        "options": {
+          "order": "relevance",
+          "safeSearch": "moderate"
+        }
+      },
+      "type": "n8n-nodes-base.youTube",
+      "typeVersion": 1,
+      "position": [
+        40,
+        -160
+      ],
+      "id": "1f6984f4-ca91-4f0d-b850-7cb16c1fb64e",
+      "name": "Search [keyword] on YT",
+      "credentials": {
+        "youTubeOAuth2Api": {
+          "id": "Mv4Z0YMZFEC8SuF2",
+          "name": "YouTube account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://www.googleapis.com/youtube/v3/videos?",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "key",
+              "value": "AIzaSyDGLvt5xjahqqBmwGs4n6UITJLTeG-ukJo"
+            },
+            {
+              "name": "part",
+              "value": "snippet, statistics"
+            },
+            {
+              "name": "id",
+              "value": "={{ $json.id.videoId }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        220,
+        -160
+      ],
+      "id": "81c41aa9-8844-4e45-8c1b-47b106bafc39",
+      "name": "Get YT Details"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1EcrCmf6u5xTbOn5BIp57bBD-tN65MSJjAwisCAEBZF0",
+          "mode": "list",
+          "cachedResultName": "R23 | YouTube Curator AI Agent",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1EcrCmf6u5xTbOn5BIp57bBD-tN65MSJjAwisCAEBZF0/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1EcrCmf6u5xTbOn5BIp57bBD-tN65MSJjAwisCAEBZF0/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "added_date",
+              "lookupValue": "={{ new Date().toISOString().split('T')[0] }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        220,
+        40
+      ],
+      "id": "80c0fa24-c79b-46ba-b5e4-cbab431e9608",
+      "name": "Get Rows Today",
+      "executeOnce": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "WmDBwEhcrLeG9D67",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Title: {{ $json.title }}\nDescription:  {{ $json.video_description }}\nVideo URL:  {{ $json.youtubeUrl }}\nlikeRate: {{ $json.likeRate }}\ndate for today: {{ $json.added_date }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=You are a YouTube expert with deep knowledge of content trends, audience engagement, and video optimization. Your task is to analyze an original video and provide a structured, insightful response to help creators develop their own unique content inspired by it.\n\nYour response should be formatted as follows, with each header formatted in capital letters, and with bullet points where relevant to improve readability, you will also put divider lines between each section to help readability. Do not bold or italicize text in your response.\n\n******\n🤖: Hey Jay! Here's your YouTube inspiration for {{ $json.added_date }}. \n\nCheers,\nRobo\n\n--------------------\n\nTOP-PERFORMING VIDEO OF THE WEEK\nTitle (translated to English, if needed):\nDescription: (summarise the description provided into max of two sentences. Ignore the parts of the description that invites the viewer to subscribe or follow, focus only on what is described is the content of the video)\nVideo URL: (provide the URL in its raw format)\nLikeRate (%): (Percentage of likes to total views, useful for gauging audience approval)\n\n---------------------\n\nWHY THIS VIDEO WORKS\nKey Points: (Briefly analyze what makes the original video successful and gives the analysis in bullet point format in the present tense. Max of 2 bullet points)\nPotential Enhancements: (Provide an expert opinion on how to make the video better in bullet point format. Max of 2 bullet points)\n\n---------------------\n\nHOW YOU CAN MAKE IT YOUR OWN\nSuggested Title: (A unique yet relevant twist on the original video, keeping it engaging and clickable)\nSuggested Content: (A fresh, original take on what the video contains, that builds on the core idea but adds improvements. Max of 3 bullet points)\n"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.5,
+      "position": [
+        80,
+        220
+      ],
+      "id": "66eb0864-fc8e-45fd-875f-294f1c02ad06",
+      "name": "🤖 R.O.B.O."
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Search [keyword] on YT",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add to Sheet": {
+      "main": [
+        [
+          {
+            "node": "Get Rows Today",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calc Metrics": {
+      "main": [
+        [
+          {
+            "node": "Only Good Videos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Engine": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "🤖 R.O.B.O.",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Only Good Videos": {
+      "main": [
+        [
+          {
+            "node": "Add to Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Only Top Videos": {
+      "main": [
+        [
+          {
+            "node": "🤖 R.O.B.O.",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search [keyword] on YT": {
+      "main": [
+        [
+          {
+            "node": "Get YT Details",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get YT Details": {
+      "main": [
+        [
+          {
+            "node": "Calc Metrics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Rows Today": {
+      "main": [
+        [
+          {
+            "node": "Only Top Videos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🤖 R.O.B.O.": {
+      "main": [
+        [
+          {
+            "node": "Send on Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Australia/Sydney",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "583e6543-8ac1-4de5-9387-4a194f46d7bd",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "addaa68bf5af965c06c3765c811549851eb65db8df4677e0c6253726ffcac493"
+  },
+  "id": "JcLX2o9XUc8rByk5",
+  "tags": []
+}

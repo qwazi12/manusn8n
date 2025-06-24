@@ -1,0 +1,95 @@
+version: '3.8'
+
+services:
+  # NodePilot Frontend (Next.js)
+  nodepilot-frontend:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: nodepilot-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
+      - NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - CLAUDE_API_KEY=${CLAUDE_API_KEY}
+      - NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+      - CLERK_SECRET_KEY=${CLERK_SECRET_KEY}
+      - STRIPE_PUBLISHABLE_KEY=${STRIPE_PUBLISHABLE_KEY}
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+      - BACKEND_URL=${BACKEND_URL}
+    volumes:
+      - ./N8N Trainings:/app/N8N Trainings:ro
+    networks:
+      - nodepilot-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # NodePilot Backend (Express.js) - Optional if you want to containerize it too
+  nodepilot-backend:
+    image: node:18-alpine
+    container_name: nodepilot-backend
+    working_dir: /app
+    ports:
+      - "8080:8080"
+    environment:
+      - NODE_ENV=production
+      - PORT=8080
+      - SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - CLAUDE_API_KEY=${CLAUDE_API_KEY}
+    volumes:
+      - ./backend:/app
+    command: sh -c "npm install && npm start"
+    networks:
+      - nodepilot-network
+    restart: unless-stopped
+    depends_on:
+      - nodepilot-frontend
+
+  # Redis for caching (optional but recommended for performance)
+  redis:
+    image: redis:7-alpine
+    container_name: nodepilot-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - nodepilot-network
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+
+  # Nginx reverse proxy (optional for production)
+  nginx:
+    image: nginx:alpine
+    container_name: nodepilot-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    networks:
+      - nodepilot-network
+    restart: unless-stopped
+    depends_on:
+      - nodepilot-frontend
+      - nodepilot-backend
+
+networks:
+  nodepilot-network:
+    driver: bridge
+
+volumes:
+  redis_data:
+    driver: local

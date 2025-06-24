@@ -1,0 +1,564 @@
+{
+  "name": "n2 - Think Tool workflow toolkit",
+  "nodes": [
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.json2video.com/v2/movies",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"template\": \"2oW2DZtCPfAbhck2tdXt\",\n  \"variables\": {\n    \"voiceModel\": \"azure\",\n    \"voiceID\": \"en-US-EmmaMultilingualNeural\",\n    \"imageModel\": \"flux-schnell\",\n    \"clips\": [\n      {\n        \"voiceText\": \"{{ $('AI Agent 3').first().json.output[0].voiceText }}\",\n        \"image_prompt\": \"{{ $('AI Agent 3').first().json.output[0].image_prompt }}\"\n      },\n      {\n        \"voiceText\": \"{{ $('AI Agent 3').first().json.output[1].voiceText }}\",\n        \"image_prompt\": \"{{ $('AI Agent 3').first().json.output[1].image_prompt }}\"\n      },\n      {\n        \"voiceText\": \"{{ $('AI Agent 3').first().json.output[2].voiceText }}\",\n        \"image_prompt\": \"{{ $('AI Agent 3').first().json.output[2].image_prompt }}\"\n      },\n      {\n        \"voiceText\": \"{{ $('AI Agent 3').first().json.output[3].voiceText }}\",\n        \"image_prompt\": \"{{ $('AI Agent 3').first().json.output[3].image_prompt }}\"\n      },\n      {\n        \"voiceText\": \"{{ $('AI Agent 3').first().json.output[4].voiceText }}\",\n        \"image_prompt\": \"{{ $('AI Agent 3').first().json.output[4].image_prompt }}\"\n      },\n      {\n        \"voiceText\": \"{{ $('AI Agent 3').first().json.output[5].voiceText }}\",\n        \"image_prompt\": \"{{ $('AI Agent 3').first().json.output[5].image_prompt }}\"\n      },\n      {\n        \"voiceText\": \"{{ $('AI Agent 3').first().json.output[6].voiceText }}\",\n        \"image_prompt\": \"{{ $('AI Agent 3').first().json.output[6].image_prompt }}\"\n      },\n      {\n        \"voiceText\": \"{{ $('AI Agent 3').first().json.output[7].voiceText }}\",\n        \"image_prompt\": \"{{ $('AI Agent 3').first().json.output[7].image_prompt }}\"\n      },\n      {\n        \"voiceText\": \"{{ $('AI Agent 3').first().json.output[8].voiceText }}\",\n        \"image_prompt\": \"{{ $('AI Agent 3').first().json.output[8].image_prompt }}\"\n      },\n      {\n        \"voiceText\": \"{{ $('AI Agent 3').first().json.output[9].voiceText }}\",\n        \"image_prompt\": \"{{ $('AI Agent 3').first().json.output[9].image_prompt }}\"\n      }\n    ]\n  }\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        540,
+        0
+      ],
+      "id": "847d3bf8-7354-4caa-bf5d-eae18683d8c7",
+      "name": "Example HTTP Request",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "EtWJm8xfz71J0FGI",
+          "name": "json2video ronu"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -1100,
+        0
+      ],
+      "id": "2b82b490-4a7c-4537-b135-91c27b96e3bf",
+      "name": "When chat message received",
+      "webhookId": "d8daf774-5d64-45f2-a278-03352cfffcbf"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "[\n      {\n        \"voiceText\": \"You're standing at the edge, where hope feels distant. Yet, this is where resilience is born.\",\n        \"image_prompt\": \"A lone figure stands on a rainy, dimly lit street corner, water dripping from a grayscale umbrella. Intense close-up of determined eyes under a dark, moody sky.\"\n      },\n      {\n        \"voiceText\": \"The world around may seem dark, but within you lies an unyielding flame.\",\n        \"image_prompt\": \"A dimly lit room, shadows playing across walls. Close-up of hands lighting a single candle, casting warm light amidst deep shadows.\"\n      },\n      {\n        \"voiceText\": \"In the silence of despair, your heart whispers the truth of your strength.\",\n        \"image_prompt\": \"A solitary figure in an empty cafe, rain streaking windows. Soft focus on their reflective expression, city lights blurred behind.\"\n      },\n      {\n        \"voiceText\": \"Every step feels heavy, yet each one is a testament to your courage.\",\n        \"image_prompt\": \"Close-up of worn boots stepping through puddles on a gritty urban street, droplets splashing dramatically in the air.\"\n      },\n      {\n        \"voiceText\": \"You're not alone; every hero has walked this road of trials.\",\n        \"image_prompt\": \"A series of black and white photos pinned to a wall, each capturing different faces of diverse people in deep thought.\"\n      },\n      {\n        \"voiceText\": \"Embrace the struggle, for it is shaping you into who you are meant to become.\",\n        \"image_prompt\": \"Silhouette of a person practicing in an empty gym, the dim lights casting elongated shadows across the polished floor.\"\n      },\n      {\n        \"voiceText\": \"Pain carves the path to greatness, chiseling away doubts and fears.\",\n        \"image_prompt\": \"An artist intensely carving a stone sculpture in a dimly lit workshop, chips of stone flying, concentration etched in every line.\"\n      },\n      {\n        \"voiceText\": \"With each sunrise, remember that perseverance fuels the dawn of new possibilities.\",\n        \"image_prompt\": \"Sunlight breaking over a cityscape, casting long shadows of skyscrapers against a still, sleepy city as a solitary figure watches from above.\"\n      },\n      {\n        \"voiceText\": \"No storm lasts forever; the sun waits behind the clouds for its moment to shine.\",\n        \"image_prompt\": \"Dark clouds loom over a distant city skyline, but a sliver of light pierces through, highlighting the silhouette of a hopeful onlooker.\"\n      },\n      {\n        \"voiceText\": \"Your journey may seem endless, but every moment builds towards your triumph.\",\n        \"image_prompt\": \"A determined figure reaches the top of a grueling staircase, sweat and rain glistening on their skin, eyes fixed upwards.\"\n      },\n      {\n        \"voiceText\": \"What seems like the end is often the beginning of something magnificent.\",\n        \"image_prompt\": \"A rusted gate swings open to reveal a vibrant street scene, people bustling under streetlights, capturing the essence of life reborn.\"\n      },\n      {\n        \"voiceText\": \"Keep moving, for the horizon is closer than it appears.\",\n        \"image_prompt\": \"A silhouette walking toward the distant light at the end of a dark tunnel, water reflecting the glow like a path.\"\n      },\n      {\n        \"voiceText\": \"In the face of adversity, you will find your true power.\",\n        \"image_prompt\": \"A boxer in a dimly lit ring, eyes fierce and unwavering, their breath visible in the cold air, spotlight focused on their resolve.\"\n      },\n      {\n        \"voiceText\": \"Every challenge met is a story written in the book of your life.\",\n        \"image_prompt\": \"A hand delicately turning the page of a timeworn journal, shadows of past entries visible, under the soft glow of a desk lamp.\"\n      },\n      {\n        \"voiceText\": \"You're closer than you think; each step brings you nearer to your breakthrough.\",\n        \"image_prompt\": \"A person reaching out to touch a glowing city map under a streetlight, reflection of determination shining in their eyes, rain gently falling.\"\n      }\n    ]\n  "
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        460,
+        200
+      ],
+      "id": "57689481-e5d8-4237-a2a0-6161710b0a7b",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1-nano",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1-nano"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        180,
+        200
+      ],
+      "id": "fd40243f-3a2d-4837-8839-3559d055c6d6",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "NyuhXI96tWK9dR2J",
+          "name": "OpenAi account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "### EXAMPLE 3: Avoid certain keywords, sound more human",
+        "height": 220,
+        "width": 300,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        200,
+        -80
+      ],
+      "id": "6443c2ad-4501-4667-804f-dc1de2d372e3",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.json2video.com/v2/movies",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"template\": \"2oW2DZtCPfAbhck2tdXt\",\n  \"variables\": {\n    \"voiceModel\": \"azure\",\n    \"voiceID\": \"en-US-EmmaMultilingualNeural\",\n    \"imageModel\": \"flux-schnell\",\n    \"clips\": [\n      {\n        \"voiceText\": \"{{ $json.output[0].voiceText }}\",\n        \"image_prompt\": \"{{ $json.output[0].image_prompt }}\"\n      }\n    ]\n  }\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -600,
+        0
+      ],
+      "id": "12bea75c-9a4f-4b49-a802-463577f73d10",
+      "name": "Example HTTP Request1",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "EtWJm8xfz71J0FGI",
+          "name": "json2video ronu"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "[\n      {\n        \"voiceText\": \"You're standing at the edge, where hope feels distant. Yet, this is where resilience is born.\",\n        \"image_prompt\": \"A lone figure stands on a rainy, dimly lit street corner, water dripping from a grayscale umbrella. Intense close-up of determined eyes under a dark, moody sky.\"\n      },\n      {\n        \"voiceText\": \"The world around may seem dark, but within you lies an unyielding flame.\",\n        \"image_prompt\": \"A dimly lit room, shadows playing across walls. Close-up of hands lighting a single candle, casting warm light amidst deep shadows.\"\n      },\n      {\n        \"voiceText\": \"In the silence of despair, your heart whispers the truth of your strength.\",\n        \"image_prompt\": \"A solitary figure in an empty cafe, rain streaking windows. Soft focus on their reflective expression, city lights blurred behind.\"\n      },\n      {\n        \"voiceText\": \"Every step feels heavy, yet each one is a testament to your courage.\",\n        \"image_prompt\": \"Close-up of worn boots stepping through puddles on a gritty urban street, droplets splashing dramatically in the air.\"\n      },\n      {\n        \"voiceText\": \"You're not alone; every hero has walked this road of trials.\",\n        \"image_prompt\": \"A series of black and white photos pinned to a wall, each capturing different faces of diverse people in deep thought.\"\n      },\n      {\n        \"voiceText\": \"Embrace the struggle, for it is shaping you into who you are meant to become.\",\n        \"image_prompt\": \"Silhouette of a person practicing in an empty gym, the dim lights casting elongated shadows across the polished floor.\"\n      },\n      {\n        \"voiceText\": \"Pain carves the path to greatness, chiseling away doubts and fears.\",\n        \"image_prompt\": \"An artist intensely carving a stone sculpture in a dimly lit workshop, chips of stone flying, concentration etched in every line.\"\n      },\n      {\n        \"voiceText\": \"With each sunrise, remember that perseverance fuels the dawn of new possibilities.\",\n        \"image_prompt\": \"Sunlight breaking over a cityscape, casting long shadows of skyscrapers against a still, sleepy city as a solitary figure watches from above.\"\n      },\n      {\n        \"voiceText\": \"No storm lasts forever; the sun waits behind the clouds for its moment to shine.\",\n        \"image_prompt\": \"Dark clouds loom over a distant city skyline, but a sliver of light pierces through, highlighting the silhouette of a hopeful onlooker.\"\n      },\n      {\n        \"voiceText\": \"Your journey may seem endless, but every moment builds towards your triumph.\",\n        \"image_prompt\": \"A determined figure reaches the top of a grueling staircase, sweat and rain glistening on their skin, eyes fixed upwards.\"\n      },\n      {\n        \"voiceText\": \"What seems like the end is often the beginning of something magnificent.\",\n        \"image_prompt\": \"A rusted gate swings open to reveal a vibrant street scene, people bustling under streetlights, capturing the essence of life reborn.\"\n      },\n      {\n        \"voiceText\": \"Keep moving, for the horizon is closer than it appears.\",\n        \"image_prompt\": \"A silhouette walking toward the distant light at the end of a dark tunnel, water reflecting the glow like a path.\"\n      },\n      {\n        \"voiceText\": \"In the face of adversity, you will find your true power.\",\n        \"image_prompt\": \"A boxer in a dimly lit ring, eyes fierce and unwavering, their breath visible in the cold air, spotlight focused on their resolve.\"\n      },\n      {\n        \"voiceText\": \"Every challenge met is a story written in the book of your life.\",\n        \"image_prompt\": \"A hand delicately turning the page of a timeworn journal, shadows of past entries visible, under the soft glow of a desk lamp.\"\n      },\n      {\n        \"voiceText\": \"You're closer than you think; each step brings you nearer to your breakthrough.\",\n        \"image_prompt\": \"A person reaching out to touch a glowing city map under a streetlight, reflection of determination shining in their eyes, rain gently falling.\"\n      }\n    ]\n  "
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        -700,
+        200
+      ],
+      "id": "ae321b1f-e1e3-446e-a72a-44550f6a4a9c",
+      "name": "Structured Output Parser1"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1-nano",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1-nano"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -940,
+        200
+      ],
+      "id": "d133bf0f-1e4e-44c6-8df8-4e49b05afeeb",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "NyuhXI96tWK9dR2J",
+          "name": "OpenAi account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "description": "=Use the tool to think about something. It does not retrieve new information or alter the database, but appends internal thoughts to the log. Use it when complex reasoning, memory, or output validation is required.\n\n***\nJSON FORMATTING CHECK\n***\nIn particular, use this tool to verify whether JSON outputs are valid and properly formatted. Pay special attention to escaping rules for double quotes inside string values. When generating or reviewing JSON, ensure that any inner double quotes (\") within string values are escaped with a backslash (\") so they do not break the JSON structure.\n\nExamples of correct and incorrect usage:\n\nIncorrect JSON (unescaped double quotes):\n{\n\"title\": \"He said, \"hello world\" in the room\"\n}\n\nThis breaks the JSON format because the \" in \"hello world\" prematurely ends the string.\n\nCorrect JSON (escaped double quotes):\n{\n\"title\": \"He said, \"hello world\" in the room\"\n}\n\nUse the tool when unsure if:\n\nAll keys and string values are enclosed in double quotes.\n\nAll internal double quotes in string values are escaped.\n\nBrackets and braces are properly opened and closed.\n\nThe final output is a single, well-structured JSON object or array.\n\nThis internal reasoning step should help prevent malformed outputs and ensure downstream tools can correctly parse the response.\n\n\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolThink",
+      "typeVersion": 1,
+      "position": [
+        -820,
+        380
+      ],
+      "id": "75d1cb7c-ce73-4caf-841b-eb088eb0a009",
+      "name": "Think1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.json2video.com/v2/movies",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"template\": \"2oW2DZtCPfAbhck2tdXt\",\n  \"variables\": {\n    \"voiceModel\": \"azure\",\n    \"voiceID\": \"en-US-EmmaMultilingualNeural\",\n    \"imageModel\": \"flux-schnell\",\n    \"clips\": [\n      {\n        \"voiceText\": \"{{ $('AI Agent 2').first().json.output[0].voiceText }}\",\n        \"image_prompt\": \"{{ $('AI Agent 2').first().json.output[0].image_prompt }}\"\n      },\n      {\n        \"voiceText\": \"{{ $('AI Agent 2').first().json.output[1].voiceText }}\",\n        \"image_prompt\": \"{{ $('AI Agent 2').first().json.output[1].image_prompt }}\"\n      },\n      {\n        \"voiceText\": \"{{ $('AI Agent 2').first().json.output[2].voiceText }}\",\n        \"image_prompt\": \"{{ $('AI Agent 2').first().json.output[2].image_prompt }}\"\n      },\n      {\n        \"voiceText\": \"{{ $('AI Agent 2').first().json.output[3].voiceText }}\",\n        \"image_prompt\": \"{{ $('AI Agent 2').first().json.output[3].image_prompt }}\"\n      },\n      {\n        \"voiceText\": \"{{ $('AI Agent 2').first().json.output[4].voiceText }}\",\n        \"image_prompt\": \"{{ $('AI Agent 2').first().json.output[4].image_prompt }}\"\n      },\n      {\n        \"voiceText\": \"{{ $('AI Agent 2').first().json.output[5].voiceText }}\",\n        \"image_prompt\": \"{{ $('AI Agent 2').first().json.output[5].image_prompt }}\"\n      },\n      {\n        \"voiceText\": \"{{ $('AI Agent 2').first().json.output[6].voiceText }}\",\n        \"image_prompt\": \"{{ $('AI Agent 2').first().json.output[6].image_prompt }}\"\n      },\n      {\n        \"voiceText\": \"{{ $('AI Agent 2').first().json.output[7].voiceText }}\",\n        \"image_prompt\": \"{{ $('AI Agent 2').first().json.output[7].image_prompt }}\"\n      },\n      {\n        \"voiceText\": \"{{ $('AI Agent 2').first().json.output[8].voiceText }}\",\n        \"image_prompt\": \"{{ $('AI Agent 2').first().json.output[8].image_prompt }}\"\n      },\n      {\n        \"voiceText\": \"{{ $('AI Agent 2').first().json.output[9].voiceText }}\",\n        \"image_prompt\": \"{{ $('AI Agent 2').first().json.output[9].image_prompt }}\"\n      }\n    ]\n  }\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -20,
+        0
+      ],
+      "id": "ef4a787f-892b-4c6a-83d1-b3c991632475",
+      "name": "Example HTTP Request2",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "EtWJm8xfz71J0FGI",
+          "name": "json2video ronu"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "[\n      {\n        \"voiceText\": \"You're standing at the edge, where hope feels distant. Yet, this is where resilience is born.\",\n        \"image_prompt\": \"A lone figure stands on a rainy, dimly lit street corner, water dripping from a grayscale umbrella. Intense close-up of determined eyes under a dark, moody sky.\"\n      },\n      {\n        \"voiceText\": \"The world around may seem dark, but within you lies an unyielding flame.\",\n        \"image_prompt\": \"A dimly lit room, shadows playing across walls. Close-up of hands lighting a single candle, casting warm light amidst deep shadows.\"\n      },\n      {\n        \"voiceText\": \"In the silence of despair, your heart whispers the truth of your strength.\",\n        \"image_prompt\": \"A solitary figure in an empty cafe, rain streaking windows. Soft focus on their reflective expression, city lights blurred behind.\"\n      },\n      {\n        \"voiceText\": \"Every step feels heavy, yet each one is a testament to your courage.\",\n        \"image_prompt\": \"Close-up of worn boots stepping through puddles on a gritty urban street, droplets splashing dramatically in the air.\"\n      },\n      {\n        \"voiceText\": \"You're not alone; every hero has walked this road of trials.\",\n        \"image_prompt\": \"A series of black and white photos pinned to a wall, each capturing different faces of diverse people in deep thought.\"\n      },\n      {\n        \"voiceText\": \"Embrace the struggle, for it is shaping you into who you are meant to become.\",\n        \"image_prompt\": \"Silhouette of a person practicing in an empty gym, the dim lights casting elongated shadows across the polished floor.\"\n      },\n      {\n        \"voiceText\": \"Pain carves the path to greatness, chiseling away doubts and fears.\",\n        \"image_prompt\": \"An artist intensely carving a stone sculpture in a dimly lit workshop, chips of stone flying, concentration etched in every line.\"\n      },\n      {\n        \"voiceText\": \"With each sunrise, remember that perseverance fuels the dawn of new possibilities.\",\n        \"image_prompt\": \"Sunlight breaking over a cityscape, casting long shadows of skyscrapers against a still, sleepy city as a solitary figure watches from above.\"\n      },\n      {\n        \"voiceText\": \"No storm lasts forever; the sun waits behind the clouds for its moment to shine.\",\n        \"image_prompt\": \"Dark clouds loom over a distant city skyline, but a sliver of light pierces through, highlighting the silhouette of a hopeful onlooker.\"\n      },\n      {\n        \"voiceText\": \"Your journey may seem endless, but every moment builds towards your triumph.\",\n        \"image_prompt\": \"A determined figure reaches the top of a grueling staircase, sweat and rain glistening on their skin, eyes fixed upwards.\"\n      },\n      {\n        \"voiceText\": \"What seems like the end is often the beginning of something magnificent.\",\n        \"image_prompt\": \"A rusted gate swings open to reveal a vibrant street scene, people bustling under streetlights, capturing the essence of life reborn.\"\n      },\n      {\n        \"voiceText\": \"Keep moving, for the horizon is closer than it appears.\",\n        \"image_prompt\": \"A silhouette walking toward the distant light at the end of a dark tunnel, water reflecting the glow like a path.\"\n      },\n      {\n        \"voiceText\": \"In the face of adversity, you will find your true power.\",\n        \"image_prompt\": \"A boxer in a dimly lit ring, eyes fierce and unwavering, their breath visible in the cold air, spotlight focused on their resolve.\"\n      },\n      {\n        \"voiceText\": \"Every challenge met is a story written in the book of your life.\",\n        \"image_prompt\": \"A hand delicately turning the page of a timeworn journal, shadows of past entries visible, under the soft glow of a desk lamp.\"\n      },\n      {\n        \"voiceText\": \"You're closer than you think; each step brings you nearer to your breakthrough.\",\n        \"image_prompt\": \"A person reaching out to touch a glowing city map under a streetlight, reflection of determination shining in their eyes, rain gently falling.\"\n      }\n    ]\n  "
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        -100,
+        200
+      ],
+      "id": "3b960c15-185e-4d72-8a35-22a69726307e",
+      "name": "Structured Output Parser2"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1-nano",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1-nano"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -380,
+        200
+      ],
+      "id": "373d271c-7957-4654-ac27-11a6af051ea1",
+      "name": "OpenAI Chat Model2",
+      "credentials": {
+        "openAiApi": {
+          "id": "NyuhXI96tWK9dR2J",
+          "name": "OpenAi account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "### EXAMPLE 2: Strict Number of Outputs",
+        "height": 220,
+        "width": 300,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -360,
+        -80
+      ],
+      "id": "d7e5535f-d655-4135-b304-b1e4d46ad58e",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "description": "=Use the tool to think about something. It does not retrieve new information or alter the database, but appends internal thoughts to the log. Use it when complex reasoning, memory, or output validation is required.\n\n***\nNUMBER OF OUTPUTS CHECK\n***\nAlways check that the JSON includes exactly 10 scenes. This is a strict requirement for downstream processing. If the output contains fewer or more than 10 scenes, flag it as invalid. Do not assume downstream systems will handle this check.\n\nUse the tool when unsure if:\n\nAll keys and string values are enclosed in double quotes.\n\nAll internal double quotes in string values are escaped.\n\nBrackets and braces are properly opened and closed.\n\nThe final output is a single, well-structured JSON object or array.\n\nThere are exactly 10 scenes present in the output.\n\nThis internal reasoning step should help prevent malformed or structurally invalid outputs and ensure downstream tools can parse and use the result reliably."
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolThink",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        380
+      ],
+      "id": "b7d4cf47-4b96-4b8e-b780-92eaed6ae829",
+      "name": "Think2"
+    },
+    {
+      "parameters": {
+        "description": "=Use the tool to think about something. It does not retrieve new information or alter the database, but appends internal thoughts to the log. Use it when complex reasoning, memory, or output validation is required.\n\n***\nSOUND MORE HUMAN\n***\n\nBefore you move on, take a moment to check your work like a human would. Does it look clean? Does it make sense? If you're unsure, it's okay to pause and think it through.\n\nTry to write like you're explaining things to a person, not a machine. Use plain language. Avoid stiff or robotic words. You’re not just being accurate—you’re being clear and readable.\n\nIf something feels off, assume it probably is and fix it. That small extra care makes a big difference downstream.\n\nAvoid words like:\nLeverage\n\nDelve\n\nMeticulous\n\nElevate\n\nRevolutionize\n\nHolistic\n\nEmpower\n\nRealm\n\nSeamless\n\nEnhance\n\nReinvent\n\nFast-paced\n\nEmbark\n\nReimagined\n\nGame-changer\n\nEnable\n\nRedefine\n\nUnprecedented\n\nEmbrace\n\nHarness the power\n\nNext-level\n\nEnsure\n\nNavigate\n\nBest-in-class\n\nEmpower\n\nDive into\n\nDisruptive\n\nEmerge\n\nDeep dive\n\nGame-changer\n\nUnleash\n\nSynergy\n\nEver-evolving\n\nUnveil\n\nMission-critical\n\nUnprecedented\n\nUnlock\n\nParadigm shift\n\nTailored\n\nUtilize\n\nCutting-edge\n\nLandscape\n\nUnderscore\n\nEver-changing\n\nDiverse sources\n\nStreamline\n\nHolistic approach\n\nDigital landscape\n\nSupercharge\n\nIntricate\n\nLaser-focused\n\nConventional solutions\n\nBespoke\n\nOrchestrating\n\nDisruptive innovation\n\nManifests"
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolThink",
+      "typeVersion": 1,
+      "position": [
+        320,
+        380
+      ],
+      "id": "1659cb61-d9df-42f1-9e65-34e2ea3d1fd3",
+      "name": "Think3"
+    },
+    {
+      "parameters": {
+        "content": "### EXAMPLE 1: Correct JSON Formatting",
+        "height": 220,
+        "width": 300,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -940,
+        -80
+      ],
+      "id": "8a9fbe92-c4f3-476f-809f-525704d725d3",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "# 🍳 How to Set Up for Your Own Space\n**Author:** Jay E from robonuggets.com\n\nTo use this workflow toolkit, just copy the nodes—especially the new Think nodes—into your own workflow and attach them to your AI agent.",
+        "height": 600,
+        "width": 300,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1460,
+        -80
+      ],
+      "id": "32eefdab-444d-4064-881e-0b46120f1a78",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "width": 150,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -860,
+        360
+      ],
+      "id": "2a6d0970-3ac2-44c2-a638-1011031f10b2",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "width": 150,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -280,
+        360
+      ],
+      "id": "950b7577-78e1-44a0-b3e4-73199c5588a1",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "width": 150,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        280,
+        360
+      ],
+      "id": "a6b11729-4ba1-4630-9bbb-a446b8c28811",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=\n\nROLE:\nYou are an expert prompt engineer. Your task is to create sequential voiceover and image prompts for a flowing video. These must follow the narrative arc of a short video:\n\nIntro (Scene 1–3)\nBuild-up (Scene 4–11)\nConclusion (Scene 12–15)\n\nThe user will provide you the title and description of the video they are making.\n\n***\n\nTASK:\nReturn a JSON array of objects with the following format:\n\n\n***\n\nvoiceText OUTPUT\nvoiceText: a 2-sentence voiceover. Each voiceText needs to be 11 to 15 words strictly. It must connect with the previous scene and help the story flow. These voiceTexts need to adhere to the channel's niche, topic and style which is provided below:\n\n\nstyle and topic\n[Stoicism]\n\nEach voiceText is delicately and intellectually crafted, but is not difficult to understand. \nYou use metaphors and analogies using the main character below when it's relevant.\n\n\n***\n\nimage_prompt OUTPUT\nimage_prompt: A vivid, cinematic, and highly descriptive visual prompt. The prompt should describe the environment, subject, lighting, mood, and composition in detail. It also describes the foreground and background. At the end of each image prompt, it must also explicity include the Style below verbatim. When you need to include a character in the prompt, use the main character description below. The image prompts are at least 700 characters in length. You over-describe the details especially that of the background of every character\n\nMain Character Description: \n[Stoic Lion]\n\n\n***\n\nCRITICAL REQUIREMENT\nAll scenes must connect smoothly—the voiceovers and visuals should flow like a single story. Think of the viewer watching this as one seamless video. Avoid repetition across prompts.\n\n\nDo not include explanations. Just return the array."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        -340,
+        0
+      ],
+      "id": "e2fce402-0cbc-4b70-aa91-68597adad491",
+      "name": "AI Agent 2"
+    },
+    {
+      "parameters": {
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=\n\nROLE:\nYou are an expert prompt engineer. Your task is to create sequential voiceover and image prompts for a flowing video. These must follow the narrative arc of a short video:\n\nIntro (Scene 1–3)\nBuild-up (Scene 4–11)\nConclusion (Scene 12–15)\n\nThe user will provide you the title and description of the video they are making.\n\n***\n\nTASK:\nReturn a JSON array of objects with the following format:\n\n\n***\n\nvoiceText OUTPUT\nvoiceText: a 2-sentence voiceover. Each voiceText needs to be 11 to 15 words strictly. It must connect with the previous scene and help the story flow. These voiceTexts need to adhere to the channel's niche, topic and style which is provided below:\n\n\nstyle and topic\n[Stoicism]\n\nEach voiceText is delicately and intellectually crafted, but is not difficult to understand. \nYou use metaphors and analogies using the main character below when it's relevant.\n\n\n***\n\nimage_prompt OUTPUT\nimage_prompt: A vivid, cinematic, and highly descriptive visual prompt. The prompt should describe the environment, subject, lighting, mood, and composition in detail. It also describes the foreground and background. At the end of each image prompt, it must also explicity include the Style below verbatim. When you need to include a character in the prompt, use the main character description below. The image prompts are at least 700 characters in length. You over-describe the details especially that of the background of every character\n\nMain Character Description: \n[Stoic Lion]\n\n\n***\n\nCRITICAL REQUIREMENT\nAll scenes must connect smoothly—the voiceovers and visuals should flow like a single story. Think of the viewer watching this as one seamless video. Avoid repetition across prompts.\n\n\nDo not include explanations. Just return the array."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        220,
+        0
+      ],
+      "id": "799f9933-ea08-4dbc-b19f-453c72fa0130",
+      "name": "AI Agent 3"
+    },
+    {
+      "parameters": {
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=\n\nROLE:\nYou are an expert prompt engineer. Your task is to create sequential voiceover and image prompts for a flowing video. These must follow the narrative arc of a short video:\n\nIntro (Scene 1–3)\nBuild-up (Scene 4–11)\nConclusion (Scene 12–15)\n\nThe user will provide you the title and description of the video they are making.\n\n***\n\nTASK:\nReturn a JSON array of 1 object with the following format:\n\n\n***\n\nvoiceText OUTPUT\nvoiceText: a 2-sentence voiceover. Each voiceText needs to be 11 to 15 words strictly. It must connect with the previous scene and help the story flow. These voiceTexts need to adhere to the channel's niche, topic and style which is provided below:\n\n\nstyle and topic\n[Stoicism]\n\nEach voiceText is delicately and intellectually crafted, but is not difficult to understand. \nYou use metaphors and analogies using the main character below when it's relevant.\n\n\n***\n\nimage_prompt OUTPUT\nimage_prompt: A vivid, cinematic, and highly descriptive visual prompt. The prompt should describe the environment, subject, lighting, mood, and composition in detail. It also describes the foreground and background. At the end of each image prompt, it must also explicity include the Style below verbatim. When you need to include a character in the prompt, use the main character description below. The image prompts are at least 700 characters in length. You over-describe the details especially that of the background of every character\n\nMain Character Description: \n[Stoic Lion]\n\n\n***\n\nCRITICAL REQUIREMENT\nAll scenes must connect smoothly—the voiceovers and visuals should flow like a single story. Think of the viewer watching this as one seamless video. Avoid repetition across prompts.\n\n\nDo not include explanations. Just return the array."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        -920,
+        0
+      ],
+      "id": "7b674bc4-60c6-4dba-aedf-8ec658ef55c4",
+      "name": "AI Agent 1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent 1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent 3",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent 3",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent 1",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent 1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Think1": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent 1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser2": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent 2",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent 2",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Think2": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent 2",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Think3": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent 3",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent 2": {
+      "main": [
+        [
+          {
+            "node": "Example HTTP Request2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent 3": {
+      "main": [
+        [
+          {
+            "node": "Example HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent 1": {
+      "main": [
+        [
+          {
+            "node": "Example HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "c0a6e328-d4a3-4638-925a-bb640d830686",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "addaa68bf5af965c06c3765c811549851eb65db8df4677e0c6253726ffcac493"
+  },
+  "id": "DzgWuFaBWRXS0mHG",
+  "tags": []
+}

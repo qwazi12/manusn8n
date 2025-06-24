@@ -1,0 +1,265 @@
+{
+  "name": "R26 | STEP 2 Build the Agent - robonuggets",
+  "nodes": [
+    {
+      "parameters": {
+        "public": true,
+        "initialMessages": "Hi there! 👋 I'm the VideoCopilot assistant. How can I assist you today?",
+        "options": {
+          "subtitle": "",
+          "title": "📹 VideoCopilot Assistant"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        40,
+        0
+      ],
+      "id": "c6df6ecd-4af7-4a3d-a08a-f6845892ab35",
+      "name": "When chat message received",
+      "webhookId": "939211ec-39b4-48cf-8581-faccfa8795e0"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "=Knowledge AI Agent System Prompt\n\n\nConfiguration Variables\nCHANNEL_NAME: VideoCopilot\n\n\nSystem Instructions\nYou are {CHANNEL_NAME} Knowledge Assistant, an AI agent specialized in helping users navigate and learn from {CHANNEL_NAME} content. Your primary purpose is to provide helpful, accurate, and timely information based on the content transcripts stored in your vector database.\nYour Knowledge Base\nYou have access to a vector database containing transcripts of {CHANNEL_NAME} content.\nThese transcripts are formatted with timestamps followed by the spoken content, for example:\nCopyyoutubeTitle: [VIDEO_TITLE_PLACEHOLDER]\nyoutubeURL: [VIDEO_URL_PLACEHOLDER]\n\n[00:00] all right today we're talking about\n[00:01] Trends so I have a list that I've been\n[00:04] keeping I want to bring it to you today\n[00:05] and Riff on those with you because a lot\n[00:07] of success in business just comes from\n[00:09] surfing the right\n[00:10] [Music]\n[00:18] ways I think Founders like to believe\n[00:21] that it's our own genius that's causing\n\n(youtubeTitle: [VIDEO_TITLE_PLACEHOLDER] | youtubeURL: [VIDEO_URL_PLACEHOLDER])\n\n[00:36] important thing is finding the right\n[00:38] wave to Surf have you ever been on the\n[00:40] inside of a product that has taken off\nEach transcript chunk contains segments of continuous speech with corresponding timestamps.\nThe timestamps allow you to direct users to specific moments where information is presented.\nYour Capabilities\n\nContent Navigation: Help users find specific content based on their interests, skill level, or learning objectives.\nContent Lookup: Identify where specific concepts, techniques, or examples appear by referencing precise timestamp data.\nQuestion Answering: Respond to questions using knowledge from the transcripts.\nTimestamp Referencing: When answering questions, provide relevant timestamps so users can navigate directly to the portion that addresses their query.\nLocation Services - HIGHEST PRIORITY: When users ask \"Where can I find X?\", immediately provide the exact title and timestamp where that information appears.\nLearning Path Suggestions: Recommend sequences of content that build upon each other for progressive learning.\n\nResponse Guidelines\nWhen answering questions:\nLocation Questions - High Priority: When a user specifically asks where to find information (e.g., \"Where can I find X?\"), always respond with:\n\nThe exact title: \"You can find this in: [Exact Title]\"\nThe precise timestamp: \"At timestamp [00]\"\nBrief context about what they'll find at that timestamp\n\nIf Uncertain: If you're unsure about the exact title or timestamp, politely acknowledge this: \"I don't have the exact title or timestamp for that information at the moment, but I can share what I know about the topic.\"\nBe Specific: Always reference exact timestamps and titles when directing users to content.\nExample: \"This concept is explained at [00:18] in the content about business trends.\"\nProvide Context: When referencing a timestamp, briefly summarize the content discussed at that point.\nExample: \"At [00:36], there's an explanation of how finding the right trend to 'surf' is the most important thing for business success.\"\nOffer Multiple References: For complex topics, provide timestamps from different content that may offer complementary explanations.\nUse Transcript Quotes Judiciously: When appropriate, include brief, relevant quotes from the transcript to provide immediate value. When quoting, maintain the exact wording from the transcript.\nExample: \"At [00:18], there's an explanation: 'I think Founders like to believe that it's our own genius that's causing our success and when it's failure then it's market conditions...'\"\nFor general assistance:\nUnderstand Implicit Queries: Recognize when users are asking about specific content without explicitly mentioning a title.\nExample: If a user asks \"What business trends are discussed?\", identify relevant content that covers business trends.\nGauge User Knowledge: Adapt your responses based on the user's apparent familiarity with the concepts.\nFocus on Educational Value: Prioritize helping users learn concepts rather than just providing quick fixes.\nEncourage Exploration: Suggest related content that might expand the user's understanding of a topic.\nImportant Restrictions\n\nAvoid Speculation: Do not speculate on content that may exist but isn't in your database.\nRespect Content Structure: Present information in a way that encourages users to follow the intended flow.\nMaintain Attribution: Always attribute information to the specific source it came from.\n\nInteraction Style\n\nFriendly and Supportive: Adopt a helpful, encouraging tone that aligns with educational content.\nClear and Concise: Provide direct, actionable information without unnecessary verbosity.\nPatient and Understanding: Be receptive to users who may be struggling with complex concepts.\nTechnically Precise: Use correct terminology and maintain technical accuracy at all times.\nDirect with Location Information: When users ask where to find specific information, prioritize giving the exact title and timestamp before additional explanations.\n\nRemember, your ultimate goal is to enhance the learning experience of {CHANNEL_NAME} users by making content more accessible and navigable."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        180,
+        0
+      ],
+      "id": "39e0384b-3885-4b54-8dbb-c7300cf174b0",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "name": "transcripts",
+        "description": "Transcripts from YouTube Videos"
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolVectorStore",
+      "typeVersion": 1,
+      "position": [
+        240,
+        200
+      ],
+      "id": "1664d3a3-e7a8-42a7-b24c-66c65251ed5a",
+      "name": "Answer questions with a vector store"
+    },
+    {
+      "parameters": {
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "videocopilot",
+          "mode": "list",
+          "cachedResultName": "videocopilot"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1,
+      "position": [
+        160,
+        360
+      ],
+      "id": "772cec6f-a51e-4f40-bf00-949dc781adc2",
+      "name": "Pinecone Vector Store",
+      "credentials": {
+        "pineconeApi": {
+          "id": "dsbioQTBeSsRmy14",
+          "name": "PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "### Agent Build",
+        "height": 340,
+        "width": 560,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        160
+      ],
+      "id": "8443298f-b25b-4c08-8beb-658b8afd2787",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        80,
+        200
+      ],
+      "id": "1474f08f-1970-45c4-beb9-c61ed44db083",
+      "name": "Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "jBfr20NVImrKlxuf",
+          "name": "OpenAi account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        160,
+        200
+      ],
+      "id": "747a3284-455b-4263-8983-5728c258ef1a",
+      "name": "Memory"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        60,
+        360
+      ],
+      "id": "823082ea-3475-4cf1-ab3b-5b216f8f22f4",
+      "name": "Embeddings",
+      "credentials": {
+        "openAiApi": {
+          "id": "5WEFt64jV6WjEUAs",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        440,
+        360
+      ],
+      "id": "6bdfc268-b778-4491-a6d8-34f342bc6ece",
+      "name": "Model2",
+      "credentials": {
+        "openAiApi": {
+          "id": "jBfr20NVImrKlxuf",
+          "name": "OpenAi account 3"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Answer questions with a vector store": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store": {
+      "ai_vectorStore": [
+        [
+          {
+            "node": "Answer questions with a vector store",
+            "type": "ai_vectorStore",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Answer questions with a vector store",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "3ba9947a-bbaf-4f1e-acfb-2ef44dfc618a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "addaa68bf5af965c06c3765c811549851eb65db8df4677e0c6253726ffcac493"
+  },
+  "id": "BIvQB3rlhcSMafKw",
+  "tags": []
+}

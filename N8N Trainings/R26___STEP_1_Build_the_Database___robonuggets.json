@@ -1,0 +1,310 @@
+{
+  "name": "R26 | STEP 1 Build the Database - robonuggets",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "383157ff-f528-4bb7-8e23-09570fd728eb",
+      "name": "When clicking ‘Test workflow’"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.apify.com/v2/acts/apidojo~youtube-scraper/run-sync-get-dataset-items?token=apify_api_vAGU1TW7cjsYxaEweEQX9bRxdY7zIr3SyDtX",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n    \"duration\": \"all\",\n    \"features\": \"all\",\n    \"getTrending\": false,\n    \"includeShorts\": false,\n    \"maxItems\": 10,\n    \"sort\": \"u\",\n    \"startUrls\": [\n\"https://www.youtube.com/@VideoCopilot\"\n    ],\n    \"uploadDate\": \"all\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        120,
+        0
+      ],
+      "id": "2d924c4c-0288-4982-a14c-d9f83d0c623d",
+      "name": "Get Vids"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.apify.com/v2/acts/karamelo~youtube-transcripts/run-sync-get-dataset-items?token=apify_api_vAGU1TW7cjsYxaEweEQX9bRxdY7zIr3SyDtX",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n    \"channelHandleBoolean\": false,\n    \"channelIDBoolean\": false,\n    \"channelNameBoolean\": false,\n    \"commentsBoolean\": false,\n    \"datePublishedBoolean\": false,\n    \"dateTextBoolean\": false,\n    \"descriptionBoolean\": false,\n    \"keywordsBoolean\": false,\n    \"likesBoolean\": false,\n    \"maxRetries\": 8,\n    \"outputFormat\": \"xmlWithTimestamps\",\n    \"proxyOptions\": {\n        \"useApifyProxy\": true,\n        \"apifyProxyGroups\": []\n    },\n    \"relativeDateTextBoolean\": false,\n    \"subscriberCountBoolean\": false,\n    \"thumbnailBoolean\": false,\n    \"uploadDateBoolean\": false,\n    \"urls\": [\n        \"{{ $json.url }}\"\n    ],\n    \"viewCountBoolean\": false\n} ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        240,
+        0
+      ],
+      "id": "ef3c78a4-415c-44ae-8210-61632c527dfb",
+      "name": "Get Transcript"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "/**\n * This script parses an XML transcript, extracts all <text> nodes with timestamps,\n * decodes HTML entities, and returns the cleaned text with YouTube title and URL\n * inserted every 15 lines.\n *\n * Expected input: a JSON object with a property \"input\" containing the XML transcript.\n */\n\n// Function to decode HTML entities (including numeric entities)\nfunction decodeHTMLEntities(text) {\n  // First, decode entities like &amp;#39; (which become &#39;) into characters\n  text = text.replace(/&amp;#(\\d+);/g, (match, dec) => String.fromCharCode(dec));\n  \n  // Then decode any remaining numeric character references (e.g. &#39;)\n  text = text.replace(/&#(\\d+);/g, (match, dec) => String.fromCharCode(dec));\n  \n  // Decode some common HTML entities\n  const entities = {\n    '&amp;': '&',\n    '&quot;': '\"',\n    '&apos;': \"'\",\n    '&lt;': '<',\n    '&gt;': '>'\n  };\n  \n  for (const entity in entities) {\n    text = text.replace(new RegExp(entity, 'g'), entities[entity]);\n  }\n  \n  return text;\n}\n\n// Function to format seconds as [MM:SS]\nfunction formatTimestamp(seconds) {\n  const minutes = Math.floor(seconds / 60);\n  const remainingSeconds = Math.floor(seconds % 60);\n  return `[${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}]`;\n}\n\n// Get the XML string from the input JSON (adjust the property name as needed)\nconst xmlInput = $json.captions;\n\n// Extract YouTube title and URL from parameters or use defaults\nconst youtubeTitle = $('Get Vids').item.json.title || \"YouTube Video\";\nconst youtubeURL = $('Get Vids').item.json.url || \"https://www.youtube.com/watch?v=videoId\";\n\n// Initialize the formatted text with the title and URL at the beginning\nlet cleanedText = `youtubeTitle: ${youtubeTitle}\\nyoutubeURL: ${youtubeURL}\\n\\n`;\n\n// Use a regex to extract text and start time inside <text> tags\nconst regex = /<text start=\"([^\"]*)\"[^>]*>(.*?)<\\/text>/g;\nlet match;\nlet lineCount = 0;\n\nwhile ((match = regex.exec(xmlInput)) !== null) {\n  const startTime = parseFloat(match[1]);\n  let textSegment = match[2];\n  \n  // Decode any HTML entities within the segment\n  textSegment = decodeHTMLEntities(textSegment);\n  \n  // Format with timestamp and add to output\n  cleanedText += `${formatTimestamp(startTime)} ${textSegment}\\n`;\n  \n  lineCount++;\n  \n  // Insert title and URL every 15 lines, but only if there are more lines to come\n  if (lineCount % 15 === 0) {\n    // Check if we have more matches to process\n    const hasMoreLines = regex.lastIndex < xmlInput.length;\n    if (hasMoreLines) {\n      cleanedText += `\\n(youtubeTitle: ${youtubeTitle} | youtubeURL: ${youtubeURL})\\n\\n`;\n    }\n  }\n}\n\n// Return the cleaned text as the output of the node\nreturn { json: { cleanedText } };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        360,
+        0
+      ],
+      "id": "c8e9b842-8dde-4715-b8a9-f73e2cc4e065",
+      "name": "Clean Text"
+    },
+    {
+      "parameters": {
+        "operation": "createFromText",
+        "content": "={{ $json.cleanedText }}",
+        "name": "={{ $('Get Vids').item.json.title }}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1P-Ifn-wpIyz2_k6V3_9jhi2PwnlpdEvK",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        480,
+        0
+      ],
+      "id": "1e531ed0-dbc1-4241-962b-ce1c7181e002",
+      "name": "Create .txt",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "OzMLS98nt4GKyFcd",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        600,
+        0
+      ],
+      "id": "f49b22d2-8809-4258-b62c-f5db1856a9bb",
+      "name": "Download .txt",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "OzMLS98nt4GKyFcd",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "videocopilot",
+          "mode": "list",
+          "cachedResultName": "videocopilot"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1,
+      "position": [
+        220,
+        220
+      ],
+      "id": "900ae231-fabc-4e43-8a9b-7a53599f94f9",
+      "name": "Pinecone Vector Store",
+      "credentials": {
+        "pineconeApi": {
+          "id": "dsbioQTBeSsRmy14",
+          "name": "PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "dataType": "binary",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1,
+      "position": [
+        220,
+        360
+      ],
+      "id": "473bad11-476b-4680-a29f-e4470e9433b6",
+      "name": "Default Data Loader"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        260,
+        480
+      ],
+      "id": "238b7730-191a-470b-b70e-e101aa0a038d",
+      "name": "OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "jBfr20NVImrKlxuf",
+          "name": "OpenAi account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chunkSize": 2500,
+        "chunkOverlap": 350,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        360,
+        480
+      ],
+      "id": "6758e92f-ab0a-4ff0-99dd-d09ff648ed51",
+      "name": "Chunks"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Test workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get Vids",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Vids": {
+      "main": [
+        [
+          {
+            "node": "Get Transcript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Transcript": {
+      "main": [
+        [
+          {
+            "node": "Clean Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clean Text": {
+      "main": [
+        [
+          {
+            "node": "Create .txt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create .txt": {
+      "main": [
+        [
+          {
+            "node": "Download .txt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download .txt": {
+      "main": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chunks": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "437fbe63-183a-420f-b502-abf2737d020e",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "addaa68bf5af965c06c3765c811549851eb65db8df4677e0c6253726ffcac493"
+  },
+  "id": "WRJs0Xh3JUo7SsXs",
+  "tags": []
+}
