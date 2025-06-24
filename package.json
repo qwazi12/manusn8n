@@ -10,7 +10,10 @@
     "format": "bunx biome format --write",
     "test:rag": "tsx src/scripts/testRagSystem.ts",
     "ingest:docs": "tsx src/scripts/ingestDocumentation.ts",
-    "ingest:comprehensive": "tsx src/scripts/run-comprehensive-ingestion.ts"
+    "ingest:comprehensive": "tsx src/scripts/run-comprehensive-ingestion.ts",
+    "optimize": "node scripts/load_node_patterns.js && node scripts/load_workflow_tips.js",
+    "load-patterns": "node scripts/load_node_patterns.js",
+    "load-tips": "node scripts/load_workflow_tips.js"
   },
   "dependencies": {
     "@clerk/clerk-sdk-node": "^4.13.23",

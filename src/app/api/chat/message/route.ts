@@ -94,48 +94,92 @@ export async function POST(request: NextRequest) {
       console.error('Error saving user message:', userMsgError);
     }
 
-    // 5. Call the backend Express server enhanced chat endpoint
-    const backendUrl = process.env.BACKEND_URL || 'https://manusn8n-production.up.railway.app';
-    console.log('Calling backend:', `${backendUrl}/api/chat/message`, { userId, messageLength: message.length });
+    // 5. Check if this is a workflow generation request and use fast generation
+    const isWorkflowRequest = isWorkflowGenerationRequest(message);
+    let data: any;
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
+    if (isWorkflowRequest) {
+      console.log('🚀 Using fast workflow generation for:', message.substring(0, 100));
 
-    const response = await fetch(`${backendUrl}/api/chat/message`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        message,
-        userId,
-        conversationId: currentConversationId,
-      }),
-      signal: controller.signal,
-    });
-
-    clearTimeout(timeoutId);
-
-    console.log('Backend response status:', response.status, response.statusText);
-
-    if (!response.ok) {
-      let errorMessage = `Backend error: ${response.status} ${response.statusText}`;
       try {
-        const errorData = await response.json();
-        errorMessage = errorData.error || errorData.details || errorMessage;
-        console.error('Backend error data:', errorData);
-      } catch {
-        const errorText = await response.text();
-        errorMessage = errorText || errorMessage;
-        console.error('Backend error text:', errorText);
+        // Try fast generation first
+        const fastResponse = await fetch(`${request.url.replace('/api/chat/message', '/api/workflow/fast-generate')}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            prompt: message,
+            user_id: userId,
+            conversation_id: currentConversationId,
+          }),
+        });
+
+        if (fastResponse.ok) {
+          const fastData = await fastResponse.json();
+          const generationTime = fastData.generation_time_ms ? `Generated in ${(fastData.generation_time_ms / 1000).toFixed(1)}s` : '';
+          const optimizationInfo = fastData.optimization_used ?
+            ` (⚡ Optimized with ${fastData.node_patterns_used} patterns)` : '';
+
+          data = {
+            success: true,
+            conversationResponse: `Here's your generated workflow! ${generationTime}${optimizationInfo}`,
+            workflow: fastData.workflow,
+            creditsRemaining: null // Will be handled by backend if needed
+          };
+        } else {
+          throw new Error('Fast generation failed');
+        }
+      } catch (error) {
+        console.warn('Fast generation failed, falling back to backend:', error);
+        // Fall back to backend
+        data = await callBackendAPI(message, userId, currentConversationId);
       }
-      return NextResponse.json(
-        { error: errorMessage },
-        { status: response.status }
-      );
+    } else {
+      // Use backend for non-workflow requests
+      data = await callBackendAPI(message, userId, currentConversationId);
     }
 
-    const data = await response.json();
+    async function callBackendAPI(msg: string, uid: string, convId: string) {
+      const backendUrl = process.env.BACKEND_URL || 'https://manusn8n-production.up.railway.app';
+      console.log('Calling backend:', `${backendUrl}/api/chat/message`, { userId: uid, messageLength: msg.length });
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
+
+      const response = await fetch(`${backendUrl}/api/chat/message`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: msg,
+          userId: uid,
+          conversationId: convId,
+        }),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      console.log('Backend response status:', response.status, response.statusText);
+
+      if (!response.ok) {
+        let errorMessage = `Backend error: ${response.status} ${response.statusText}`;
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorData.details || errorMessage;
+          console.error('Backend error data:', errorData);
+        } catch {
+          const errorText = await response.text();
+          errorMessage = errorText || errorMessage;
+          console.error('Backend error text:', errorText);
+        }
+        throw new Error(errorMessage);
+      }
+
+      return await response.json();
+    }
     console.log('Backend response data:', {
       success: data.success,
       hasWorkflow: !!data.workflow,
@@ -214,4 +258,40 @@ async function processFiles(files: File[]): Promise<string> {
   }
 
   return fileContents.join('\n\n');
+}
+
+// Helper function to detect if a message is requesting workflow generation
+function isWorkflowGenerationRequest(message: string): boolean {
+  const workflowKeywords = [
+    'workflow', 'automation', 'automate', 'integrate', 'build', 'create',
+    'generate', 'make', 'setup', 'connect', 'trigger', 'schedule',
+    'api', 'webhook', 'database', 'email', 'notification', 'sync',
+    'google sheets', 'airtable', 'slack', 'discord', 'telegram',
+    'http request', 'calendar', 'gmail', 'zapier', 'n8n'
+  ];
+
+  const messageLower = message.toLowerCase();
+
+  // Check for workflow keywords
+  const hasWorkflowKeywords = workflowKeywords.some(keyword =>
+    messageLower.includes(keyword)
+  );
+
+  // Check for action words that suggest automation
+  const actionWords = ['send', 'fetch', 'get', 'post', 'update', 'delete', 'sync', 'monitor'];
+  const hasActionWords = actionWords.some(word => messageLower.includes(word));
+
+  // Check for service integration patterns
+  const servicePatterns = [
+    /integrate .+ with .+/i,
+    /connect .+ to .+/i,
+    /sync .+ with .+/i,
+    /send .+ to .+/i,
+    /when .+ then .+/i,
+    /if .+ then .+/i
+  ];
+  const hasServicePatterns = servicePatterns.some(pattern => pattern.test(message));
+
+  // Consider it a workflow request if it has workflow keywords OR (action words AND service patterns)
+  return hasWorkflowKeywords || (hasActionWords && hasServicePatterns);
 }
