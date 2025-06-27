@@ -1,0 +1,152 @@
+{
+  "name": "n8n 1.100.1 Compatibility Test Workflow",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "f7b1c1a0-1234-4567-8901-234567890123",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://jsonplaceholder.typicode.com/posts/1",
+        "authentication": "none",
+        "sendQuery": false,
+        "sendHeaders": false,
+        "sendBody": false,
+        "options": {}
+      },
+      "id": "a2b3c4d5-2345-5678-9012-345678901234",
+      "name": "HTTP Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        200,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "includeOtherFields": false,
+        "fields": {
+          "values": [
+            {
+              "name": "processed_title",
+              "type": "string",
+              "value": "={{$json.title}} - Processed by NodePilot"
+            },
+            {
+              "name": "post_id",
+              "type": "number",
+              "value": "={{$json.id}}"
+            },
+            {
+              "name": "processing_timestamp",
+              "type": "string",
+              "value": "={{new Date().toISOString()}}"
+            },
+            {
+              "name": "n8n_version",
+              "type": "string",
+              "value": "1.100.1"
+            }
+          ]
+        }
+      },
+      "id": "b3c4d5e6-3456-6789-0123-456789012345",
+      "name": "Process Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3,
+      "position": [
+        400,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://httpbin.org/post",
+        "authentication": "none",
+        "sendQuery": false,
+        "sendHeaders": true,
+        "sendBody": true,
+        "contentType": "json",
+        "specifyHeaders": "keypair",
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "X-NodePilot-Version",
+              "value": "n8n-1.100.1"
+            }
+          ]
+        },
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "c4d5e6f7-4567-7890-1234-567890123456",
+      "name": "Send Result",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        600,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Process Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Data": {
+      "main": [
+        [
+          {
+            "node": "Send Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2025-06-27T00:00:00.000Z",
+  "versionId": "1.100.1"
+}
