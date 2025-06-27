@@ -62,3 +62,7 @@ backend/.env
 
 # OS files
 Thumbs.db
+
+# Example folders (do not commit)
+npv3-main/
+supabase information csv download/

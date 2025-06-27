@@ -80,7 +80,7 @@ export function SubscriptionDashboard() {
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'active': return 'bg-green-500';
-      case 'trialing': return 'bg-blue-500';
+      case 'trialing': return 'bg-orange-500'; // Use brand salmon color
       case 'past_due': return 'bg-yellow-500';
       case 'canceled': return 'bg-gray-500';
       case 'incomplete': return 'bg-red-500';

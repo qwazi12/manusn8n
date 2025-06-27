@@ -92,12 +92,46 @@ export default function TemplatesPage() {
 
   const handleUseTemplate = async (template: WorkflowTemplate) => {
     try {
+      // Ensure we have valid workflow JSON
+      if (!template.workflow_json) {
+        alert('This template does not have workflow data available.');
+        return;
+      }
+
       // Copy workflow JSON to clipboard
-      await navigator.clipboard.writeText(JSON.stringify(template.workflow_json, null, 2));
-      alert(`${template.name} workflow JSON copied to clipboard! You can now import it into n8n.`);
+      const workflowJson = JSON.stringify(template.workflow_json, null, 2);
+      await navigator.clipboard.writeText(workflowJson);
+
+      // Show success message with instructions
+      alert(`✅ ${template.name} workflow JSON copied to clipboard!\n\n📋 To use this workflow:\n1. Open n8n\n2. Click "Import from clipboard"\n3. Paste the workflow\n4. Configure your credentials\n\nWorkflow size: ${Math.round(workflowJson.length / 1024)}KB`);
+
+      console.log('📋 Template copied:', {
+        name: template.name,
+        size: workflowJson.length,
+        nodeCount: template.node_count
+      });
     } catch (error) {
-      console.error('Error copying to clipboard:', error);
-      alert('Error copying workflow. Please try again.');
+      console.error('❌ Error copying to clipboard:', error);
+
+      // Fallback: try to download as file
+      try {
+        const blob = new Blob([JSON.stringify(template.workflow_json, null, 2)], {
+          type: 'application/json'
+        });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${template.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_workflow.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        alert(`📥 ${template.name} workflow downloaded as JSON file!\n\nTo use: Import this file in n8n.`);
+      } catch (downloadError) {
+        console.error('❌ Download fallback failed:', downloadError);
+        alert('❌ Error copying workflow. Please try refreshing the page.');
+      }
     }
   };
 

@@ -93,9 +93,9 @@ export function BillingStatus() {
               {billingInfo?.credits !== undefined ? `${billingInfo.credits} credits remaining` : 'Loading credits...'}
             </CardDescription>
           </div>
-          <Button 
-            variant="outline" 
-            onClick={() => window.location.href = '/clerk-pricing'}
+          <Button
+            variant="outline"
+            onClick={() => window.location.href = '/pricing'}
           >
             {currentPlan === 'Free Trial' ? 'Upgrade Plan' : 'Manage Plan'}
           </Button>

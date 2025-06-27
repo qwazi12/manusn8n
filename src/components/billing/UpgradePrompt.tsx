@@ -61,8 +61,8 @@ export function UpgradePrompt({
   const handleUpgrade = async (planType: string) => {
     setIsLoading(true);
     try {
-      // Redirect to Clerk pricing page with plan selection
-      window.location.href = `/clerk-pricing?plan=${planType}`;
+      // Redirect to Stripe pricing page with plan selection
+      window.location.href = `/pricing?plan=${planType}`;
     } catch (error) {
       console.error('Error initiating upgrade:', error);
     } finally {

@@ -94,91 +94,65 @@ export async function POST(request: NextRequest) {
       console.error('Error saving user message:', userMsgError);
     }
 
-    // 5. Check if this is a workflow generation request and use fast generation
-    const isWorkflowRequest = isWorkflowGenerationRequest(message);
-    let data: any;
+    // 5. Use the sophisticated backend AI system for all requests
+    // The backend has OpenAI + Claude hybrid system that's optimized for n8n workflows
+    console.log('🤖 Using backend AI system for:', message.substring(0, 100));
 
-    if (isWorkflowRequest) {
-      console.log('🚀 Using fast workflow generation for:', message.substring(0, 100));
-
-      try {
-        // Try fast generation first
-        const fastResponse = await fetch(`${request.url.replace('/api/chat/message', '/api/workflow/fast-generate')}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            prompt: message,
-            user_id: userId,
-            conversation_id: currentConversationId,
-          }),
-        });
-
-        if (fastResponse.ok) {
-          const fastData = await fastResponse.json();
-          const generationTime = fastData.generation_time_ms ? `Generated in ${(fastData.generation_time_ms / 1000).toFixed(1)}s` : '';
-          const optimizationInfo = fastData.optimization_used ?
-            ` (⚡ Optimized with ${fastData.node_patterns_used} patterns)` : '';
-
-          data = {
-            success: true,
-            conversationResponse: `Here's your generated workflow! ${generationTime}${optimizationInfo}`,
-            workflow: fastData.workflow,
-            creditsRemaining: null // Will be handled by backend if needed
-          };
-        } else {
-          throw new Error('Fast generation failed');
-        }
-      } catch (error) {
-        console.warn('Fast generation failed, falling back to backend:', error);
-        // Fall back to backend
-        data = await callBackendAPI(message, userId, currentConversationId);
-      }
-    } else {
-      // Use backend for non-workflow requests
-      data = await callBackendAPI(message, userId, currentConversationId);
-    }
+    const data = await callBackendAPI(message, userId, currentConversationId);
 
     async function callBackendAPI(msg: string, uid: string, convId: string) {
       const backendUrl = process.env.BACKEND_URL || 'https://manusn8n-production.up.railway.app';
-      console.log('Calling backend:', `${backendUrl}/api/chat/message`, { userId: uid, messageLength: msg.length });
+      console.log('🔗 Calling sophisticated backend AI:', `${backendUrl}/api/chat/message`, {
+        userId: uid,
+        messageLength: msg.length,
+        conversationId: convId
+      });
 
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
+      const timeoutId = setTimeout(() => controller.abort(), 90000); // 90 second timeout for AI processing
+
+      const requestBody = {
+        message: msg,
+        userId: uid,
+        conversationId: convId,
+      };
 
       const response = await fetch(`${backendUrl}/api/chat/message`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          message: msg,
-          userId: uid,
-          conversationId: convId,
-        }),
+        body: JSON.stringify(requestBody),
         signal: controller.signal,
       });
 
       clearTimeout(timeoutId);
 
-      console.log('Backend response status:', response.status, response.statusText);
+      console.log('🔙 Backend AI response status:', response.status, response.statusText);
 
       if (!response.ok) {
-        let errorMessage = `Backend error: ${response.status} ${response.statusText}`;
+        let errorMessage = `Backend AI error: ${response.status} ${response.statusText}`;
         try {
           const errorData = await response.json();
           errorMessage = errorData.error || errorData.details || errorMessage;
-          console.error('Backend error data:', errorData);
+          console.error('❌ Backend AI error data:', errorData);
         } catch {
           const errorText = await response.text();
           errorMessage = errorText || errorMessage;
-          console.error('Backend error text:', errorText);
+          console.error('❌ Backend AI error text:', errorText);
         }
         throw new Error(errorMessage);
       }
 
-      return await response.json();
+      const result = await response.json();
+      console.log('✅ Backend AI response:', {
+        success: result.success,
+        hasWorkflow: !!result.workflow,
+        hasMessage: !!result.conversationResponse,
+        creditsRemaining: result.creditsRemaining
+      });
+
+      return result;
     }
     console.log('Backend response data:', {
       success: data.success,
