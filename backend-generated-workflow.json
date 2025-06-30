@@ -1,0 +1,85 @@
+{
+  "name": "User Data Retrieval Workflow",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "d4d81ce0-4c77-4053-9a4c-89d6d506a39f",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://api.example.com/users",
+        "authentication": "none",
+        "sendQuery": false,
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a9b8c7d6-e5f4-3g2h-1i0j-k9l8m7n6o5p4",
+      "name": "HTTP Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [220, 0]
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "includeOtherFields": true,
+        "fields": {
+          "values": [
+            {
+              "name": "processedData",
+              "type": "string",
+              "value": "={{ $json.data }}"
+            },
+            {
+              "name": "timestamp",
+              "type": "string",
+              "value": "={{ $now() }}"
+            }
+          ]
+        }
+      },
+      "id": "b1c2d3e4-f5g6-7h8i-9j0k-l1m2n3o4p5q6",
+      "name": "Set Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3,
+      "position": [440, 0]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Set Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

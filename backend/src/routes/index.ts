@@ -7,6 +7,7 @@ import authRoutes from './auth.routes';
 import batchRoutes from './batch.routes';
 import templateRoutes from './template.routes';
 import pricingRoutes from './pricing.routes';
+import visionRoutes from './vision.routes';
 import { nodePilotAiService } from '../services/ai/nodePilotAiService';
 import { logger } from '../utils/logger';
 
@@ -20,6 +21,7 @@ router.use('/auth', authRoutes);
 router.use('/batch', batchRoutes);
 router.use('/templates', templateRoutes);
 router.use('/pricing', pricingRoutes);
+router.use('/vision', visionRoutes);
 
 // Health check endpoint
 router.get('/health', (req, res) => {

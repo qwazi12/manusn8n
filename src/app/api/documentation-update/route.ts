@@ -1,9 +1,7 @@
 // src/app/api/documentation-update/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { EnhancedWorkflowController } from '../../../controllers/enhancedWorkflowController';
-import { auth } from '@clerk/nextjs';
-
-const controller = new EnhancedWorkflowController();
+import { auth } from '@clerk/nextjs/server';
 
 export async function POST(request: NextRequest) {
     try {
@@ -44,6 +42,9 @@ export async function POST(request: NextRequest) {
                 };
             }
         } as any;
+
+        // Initialize controller at runtime
+        const controller = new EnhancedWorkflowController();
 
         // Call the controller
         await controller.updateDocumentation(mockReq, mockRes);

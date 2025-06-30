@@ -2,6 +2,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { config } from '../../config/config';
 import { logger } from '../../utils/logger';
+import { supabaseService } from '../database/supabaseService';
 import fs from 'fs/promises';
 import path from 'path';
 
@@ -371,7 +372,7 @@ class RAGService {
   }
 
   /**
-   * Search knowledge base for relevant information
+   * Search knowledge base for relevant information using Supabase database
    */
   async searchKnowledge(query: RAGQuery): Promise<RAGResult[]> {
     try {
@@ -379,21 +380,76 @@ class RAGService {
         await this.initializeKnowledgeBase();
       }
 
-      // Simple text-based search (in production, use vector similarity)
-      const results = this.documentChunks
+      // Search Supabase database for relevant documentation
+      const supabaseResults = await this.searchSupabaseDocumentation(query);
+
+      // Combine with hardcoded chunks for fallback
+      const hardcodedResults = this.documentChunks
         .map(chunk => ({
           content: chunk.content,
           source: chunk.metadata.source,
           relevanceScore: this.calculateRelevance(query.query, chunk.content),
           metadata: chunk.metadata
         }))
-        .filter(result => result.relevanceScore > 0.1)
+        .filter(result => result.relevanceScore > 0.1);
+
+      // Merge and sort all results
+      const allResults = [...supabaseResults, ...hardcodedResults]
         .sort((a, b) => b.relevanceScore - a.relevanceScore)
         .slice(0, query.maxResults || 5);
 
-      return results;
+      logger.info(`RAG search found ${allResults.length} results for query: ${query.query}`);
+      return allResults;
     } catch (error) {
       logger.error('Error searching knowledge base:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Search Supabase n8n documentation database
+   */
+  private async searchSupabaseDocumentation(query: RAGQuery): Promise<RAGResult[]> {
+    try {
+      const { data, error } = await supabaseService.client
+        .from('n8n_documentation')
+        .select('title, content, source_url, category, subcategory, metadata, tokens, snippet_type')
+        .textSearch('content', query.query, {
+          type: 'websearch',
+          config: 'english'
+        })
+        .limit(query.maxResults || 10);
+
+      if (error) {
+        logger.error('Error searching Supabase documentation:', error);
+        return [];
+      }
+
+      if (!data || data.length === 0) {
+        logger.info('No results found in Supabase documentation');
+        return [];
+      }
+
+      // Convert Supabase results to RAGResult format
+      const results: RAGResult[] = data.map(doc => ({
+        content: doc.content,
+        source: doc.source_url || 'n8n-documentation',
+        relevanceScore: this.calculateRelevance(query.query, doc.content),
+        metadata: {
+          title: doc.title,
+          category: doc.category,
+          subcategory: doc.subcategory,
+          snippet_type: doc.snippet_type,
+          tokens: doc.tokens,
+          source: 'supabase-database',
+          ...doc.metadata
+        }
+      }));
+
+      logger.info(`Found ${results.length} results from Supabase documentation`);
+      return results.filter(result => result.relevanceScore > 0.1);
+    } catch (error) {
+      logger.error('Error in Supabase documentation search:', error);
       return [];
     }
   }
