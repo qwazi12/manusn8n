@@ -11,6 +11,7 @@ declare global {
     interface Request {
       user?: {
         id: string;
+        userId?: string; // For compatibility with vision routes
         email: string;
         role: string;
       };
@@ -59,6 +60,7 @@ export const authMiddleware = async (
 
         req.user = {
           id: userData.id, // Use Supabase UUID
+          userId: token, // Keep Clerk ID for compatibility
           email: userData.email,
           role: 'user'
         };
@@ -75,6 +77,9 @@ export const authMiddleware = async (
     res.status(401).json({ error: 'Authentication failed' });
   }
 };
+
+// Alias for compatibility with vision routes
+export const authenticateUser = authMiddleware;
 
 // Mock JWT token generation for development
 export const generateMockToken = (userId: string, email: string, role: string = 'user'): string => {

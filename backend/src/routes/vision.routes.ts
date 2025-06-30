@@ -2,7 +2,7 @@
 import { Router } from 'express';
 import { visionService } from '../services/ai/visionService';
 import { logger } from '../utils/logger';
-import { authenticateUser } from '../middleware/auth';
+import { authenticateUser } from '../middleware/authMiddleware';
 import multer from 'multer';
 import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
