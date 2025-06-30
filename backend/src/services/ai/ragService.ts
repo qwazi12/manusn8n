@@ -411,7 +411,7 @@ class RAGService {
    */
   private async searchSupabaseDocumentation(query: RAGQuery): Promise<RAGResult[]> {
     try {
-      const { data, error } = await supabaseService.client
+      const { data, error } = await supabaseService.getClient()
         .from('n8n_documentation')
         .select('title, content, source_url, category, subcategory, metadata, tokens, snippet_type')
         .textSearch('content', query.query, {

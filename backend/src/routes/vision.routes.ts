@@ -32,7 +32,7 @@ const upload = multer({
  */
 router.post('/analyze-workflow-image', authenticateUser, upload.single('image'), async (req, res) => {
   try {
-    const { userId } = req.user;
+    const userId = req.user?.userId || req.user?.id;
     const { additionalContext } = req.body;
 
     if (!req.file) {
@@ -96,7 +96,7 @@ router.post('/analyze-workflow-image', authenticateUser, upload.single('image'),
  */
 router.post('/generate-workflow-from-image', authenticateUser, upload.single('image'), async (req, res) => {
   try {
-    const { userId } = req.user;
+    const userId = req.user?.userId || req.user?.id;
     const { additionalContext } = req.body;
 
     if (!req.file) {
@@ -172,7 +172,7 @@ router.post('/generate-workflow-from-image', authenticateUser, upload.single('im
  */
 router.post('/validate-workflow-image', authenticateUser, upload.single('image'), async (req, res) => {
   try {
-    const { userId } = req.user;
+    const userId = req.user?.userId || req.user?.id;
 
     if (!req.file) {
       return res.status(400).json({

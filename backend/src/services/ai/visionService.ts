@@ -181,7 +181,7 @@ class VisionService {
         };
       } catch (parseError) {
         logger.warn('Failed to parse vision analysis as JSON, using text analysis', {
-          parseError: parseError.message,
+          parseError: parseError instanceof Error ? parseError.message : String(parseError),
           contentPreview: content.substring(0, 200)
         });
         return {
