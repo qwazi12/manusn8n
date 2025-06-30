@@ -35,6 +35,13 @@ router.post('/analyze-workflow-image', authenticateUser, upload.single('image'),
     const userId = req.user?.userId || req.user?.id;
     const { additionalContext } = req.body;
 
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'User authentication required'
+      });
+    }
+
     if (!req.file) {
       return res.status(400).json({
         success: false,
@@ -46,10 +53,10 @@ router.post('/analyze-workflow-image', authenticateUser, upload.single('image'),
     const base64Image = req.file.buffer.toString('base64');
     const imageUrl = `data:${req.file.mimetype};base64,${base64Image}`;
 
-    logger.info('Analyzing workflow image', { 
-      userId, 
+    logger.info('Analyzing workflow image', {
+      userId,
       fileSize: req.file.size,
-      mimeType: req.file.mimetype 
+      mimeType: req.file.mimetype
     });
 
     // Validate that it's a workflow image
@@ -99,6 +106,13 @@ router.post('/generate-workflow-from-image', authenticateUser, upload.single('im
     const userId = req.user?.userId || req.user?.id;
     const { additionalContext } = req.body;
 
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'User authentication required'
+      });
+    }
+
     if (!req.file) {
       return res.status(400).json({
         success: false,
@@ -110,10 +124,10 @@ router.post('/generate-workflow-from-image', authenticateUser, upload.single('im
     const base64Image = req.file.buffer.toString('base64');
     const imageUrl = `data:${req.file.mimetype};base64,${base64Image}`;
 
-    logger.info('Generating workflow from image', { 
-      userId, 
+    logger.info('Generating workflow from image', {
+      userId,
       fileSize: req.file.size,
-      mimeType: req.file.mimetype 
+      mimeType: req.file.mimetype
     });
 
     // Validate that it's a workflow image
