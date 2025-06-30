@@ -266,12 +266,30 @@ Output: Optimized prompt for workflow generation`
       };
     } catch (error) {
       logger.error('Intent classification error:', error);
-      // Fallback classification
-      const isWorkflowRequest = /create|build|automate|workflow|connect|integrate/i.test(message);
+      // Enhanced fallback classification with more keywords
+      const workflowKeywords = [
+        'create', 'build', 'automate', 'workflow', 'connect', 'integrate',
+        'generate', 'make', 'setup', 'configure', 'trigger', 'webhook',
+        'api', 'email', 'slack', 'notification', 'schedule', 'database',
+        'sync', 'upload', 'download', 'process', 'transform', 'filter',
+        'send', 'receive', 'monitor', 'alert', 'backup', 'export',
+        'import', 'automation', 'flow', 'node', 'connection'
+      ];
+
+      const messageWords = message.toLowerCase().split(/\s+/);
+      const matchCount = messageWords.filter(word =>
+        workflowKeywords.some(keyword => word.includes(keyword))
+      ).length;
+
+      // If multiple workflow keywords or specific patterns, assume workflow request
+      const isWorkflowRequest = matchCount >= 1 ||
+        /\b(for|with|using|from|to)\s+\w+/i.test(message) ||
+        message.length > 20; // Longer messages are likely workflow requests
+
       return {
         intent: isWorkflowRequest ? 'workflow_request' : 'general_conversation',
-        confidence: 60,
-        reasoning: 'Fallback keyword-based classification',
+        confidence: isWorkflowRequest ? 80 : 40, // Higher confidence for workflow detection
+        reasoning: `Fallback classification: ${matchCount} workflow keywords found`,
         entities: {}
       };
     }
