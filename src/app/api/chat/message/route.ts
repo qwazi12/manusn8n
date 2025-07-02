@@ -70,9 +70,36 @@ export async function POST(request: NextRequest) {
 
     // 4. Process files if any
     let fileContext = '';
+    let hasWorkflowImages = false;
+
     if (files.length > 0) {
-      fileContext = await processFiles(files);
-      message = `${message}\n\n[Files attached: ${files.map(f => f.name).join(', ')}]\n${fileContext}`;
+      // Check if any files are workflow images
+      const imageFiles = files.filter(file => file.type.startsWith('image/'));
+
+      if (imageFiles.length > 0) {
+        // Process images through vision service
+        try {
+          const visionResults = await processWorkflowImages(imageFiles, userId, message);
+          if (visionResults.length > 0) {
+            hasWorkflowImages = true;
+            fileContext = visionResults.join('\n\n');
+            message = `${message}\n\n[Workflow images processed: ${imageFiles.map(f => f.name).join(', ')}]\n${fileContext}`;
+          } else {
+            // Fallback to regular file processing
+            fileContext = await processFiles(files);
+            message = `${message}\n\n[Files attached: ${files.map(f => f.name).join(', ')}]\n${fileContext}`;
+          }
+        } catch (error) {
+          console.error('Error processing workflow images:', error);
+          // Fallback to regular file processing
+          fileContext = await processFiles(files);
+          message = `${message}\n\n[Files attached: ${files.map(f => f.name).join(', ')}]\n${fileContext}`;
+        }
+      } else {
+        // Process non-image files normally
+        fileContext = await processFiles(files);
+        message = `${message}\n\n[Files attached: ${files.map(f => f.name).join(', ')}]\n${fileContext}`;
+      }
     }
 
     // 5. Save user message to conversation
@@ -204,6 +231,60 @@ export async function POST(request: NextRequest) {
   }
 }
 
+// Helper function to process workflow images through vision service
+async function processWorkflowImages(imageFiles: File[], userId: string, userMessage: string): Promise<string[]> {
+  const results: string[] = [];
+  const backendUrl = process.env.BACKEND_URL || 'https://manusn8n-production.up.railway.app';
+
+  for (const file of imageFiles) {
+    try {
+      console.log(`🖼️ Processing workflow image: ${file.name}`);
+
+      // Create FormData for image upload
+      const formData = new FormData();
+      formData.append('image', file);
+      formData.append('userId', userId);
+      formData.append('additionalContext', userMessage || 'Generate n8n workflow from this image');
+
+      // Call the vision service to generate workflow
+      const response = await fetch(`${backendUrl}/api/vision/generate-workflow-from-image`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${userId}`, // Pass user ID for authentication
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Vision API error: ${response.status}`);
+      }
+
+      const visionResult = await response.json();
+
+      if (visionResult.success && visionResult.data?.workflow) {
+        results.push(`--- Generated n8n Workflow from ${file.name} ---
+**Workflow Analysis:** ${visionResult.data.analysis || 'Workflow successfully generated from image'}
+
+**n8n Workflow JSON:**
+\`\`\`json
+${JSON.stringify(visionResult.data.workflow, null, 2)}
+\`\`\`
+
+**Instructions:** Copy the JSON above and import it into your n8n instance to recreate this workflow.`);
+      } else {
+        results.push(`--- Analysis of ${file.name} ---
+${visionResult.message || 'Unable to generate workflow from this image. Please ensure it shows a clear n8n workflow interface.'}`);
+      }
+    } catch (error) {
+      console.error(`Error processing image ${file.name}:`, error);
+      results.push(`--- Error processing ${file.name} ---
+Unable to analyze this image. Please ensure it's a clear screenshot of an n8n workflow.`);
+    }
+  }
+
+  return results;
+}
+
 // Helper function to process uploaded files
 async function processFiles(files: File[]): Promise<string> {
   const fileContents: string[] = [];
@@ -219,8 +300,8 @@ async function processFiles(files: File[]): Promise<string> {
         const text = await file.text();
         fileContents.push(`--- JSON content of ${file.name} ---\n${text}\n--- End of ${file.name} ---`);
       } else if (file.type.startsWith('image/')) {
-        // For images, just note the file info
-        fileContents.push(`--- Image file: ${file.name} (${file.type}, ${Math.round(file.size/1024)}KB) ---\nNote: Image content analysis not yet implemented.`);
+        // For images, note that they should be processed by vision service
+        fileContents.push(`--- Image file: ${file.name} (${file.type}, ${Math.round(file.size/1024)}KB) ---\nNote: This image will be processed by the vision service for workflow analysis.`);
       } else {
         // For other files, just note the file info
         fileContents.push(`--- File: ${file.name} (${file.type}, ${Math.round(file.size/1024)}KB) ---\nNote: File content analysis not yet implemented for this file type.`);
