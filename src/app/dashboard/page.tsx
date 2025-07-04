@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { SignedIn, SignedOut, RedirectToSignIn, useUser } from "@clerk/nextjs";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import ChatInputBar from "@/components/chat/ChatInputBar";
 import { TrialStatus } from "@/components/trial/TrialStatus";
 
@@ -35,7 +35,20 @@ export default function DashboardPage() {
   const [conversations, setConversations] = useState<any[]>([]);
   const [loadingConversation, setLoadingConversation] = useState(false);
 
+  // Ref for auto-scrolling to bottom of messages
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
+
+
+  // Auto-scroll to bottom when messages change
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  // Scroll to bottom whenever messages change
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   // Fetch user credits and load conversation history on component mount
   useEffect(() => {
@@ -329,6 +342,8 @@ Please try again or contact support if the issue persists.`,
                   </div>
                 </div>
               )}
+              {/* Invisible element to scroll to */}
+              <div ref={messagesEndRef} />
             </div>
           )}
 
