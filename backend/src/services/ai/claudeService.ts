@@ -34,12 +34,29 @@ class ClaudeService {
         model: "claude-sonnet-4-20250514",
         max_tokens: 4000,
         temperature: 0.7,
-        system: `You are an expert in n8n workflows. Create a valid n8n workflow JSON based on the user's request. 
-        Return only the JSON workflow structure with nodes and connections. 
-        Each node should have: id, type, position [x, y], and parameters.
-        Connections should specify source, target, sourceHandle, and targetHandle.
-        
-        Make sure the JSON is valid and follows n8n workflow structure exactly.`,
+        system: `You are an expert in n8n workflows. Create a valid n8n workflow JSON based on the user's request.
+
+CRITICAL: You must return ONLY valid JSON. No explanations, no markdown, no code blocks. Just pure JSON.
+
+The JSON structure must include:
+- nodes: array of node objects with id, type, position {x, y}, parameters, typeVersion
+- connections: array of connection objects with source, target, sourceHandle, targetHandle
+- meta: object with instanceId
+- name: string with workflow name
+- active: boolean (set to false)
+- staticData: empty object {}
+
+Example structure:
+{
+  "name": "Workflow Name",
+  "nodes": [...],
+  "connections": {...},
+  "active": false,
+  "staticData": {},
+  "meta": {"instanceId": "n8n-workflow"}
+}
+
+Return ONLY the JSON object, nothing else.`,
         messages: [
           {
             role: "user",
@@ -55,14 +72,54 @@ class ClaudeService {
       }
       
       try {
-        // Try to extract JSON from the response
-        const jsonMatch = content.text.match(/```(?:json)?\s*(\{[\s\S]*\})\s*```/);
-        const jsonString = jsonMatch ? jsonMatch[1] : content.text;
-        
+        // Log the raw response for debugging
+        logger.info('Claude raw response:', {
+          response: content.text.substring(0, 500) + '...',
+          userId: request.userId
+        });
+
+        // Try multiple JSON extraction methods
+        let jsonString = '';
+
+        // Method 1: Extract from code blocks
+        const codeBlockMatch = content.text.match(/```(?:json)?\s*(\{[\s\S]*\})\s*```/);
+        if (codeBlockMatch) {
+          jsonString = codeBlockMatch[1];
+        } else {
+          // Method 2: Extract first complete JSON object
+          const jsonMatch = content.text.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            jsonString = jsonMatch[0];
+          } else {
+            // Method 3: Use entire response if no brackets found
+            jsonString = content.text.trim();
+          }
+        }
+
+        // Clean up the JSON string
+        jsonString = jsonString.trim();
+
+        logger.info('Extracted JSON string:', {
+          jsonPreview: jsonString.substring(0, 200) + '...',
+          userId: request.userId
+        });
+
         const workflowJson = JSON.parse(jsonString);
+
+        // Validate that it's a proper workflow structure
+        if (!workflowJson || typeof workflowJson !== 'object') {
+          throw new Error('Invalid workflow structure: not an object');
+        }
+
+        logger.info('Successfully parsed Claude workflow JSON', { userId: request.userId });
         return workflowJson;
       } catch (parseError) {
-        logger.warn('Failed to parse Claude response as JSON, using mock workflow');
+        logger.error('Failed to parse Claude response as JSON:', {
+          error: parseError,
+          rawResponse: content.text.substring(0, 1000),
+          userId: request.userId
+        });
+        logger.warn('Using mock workflow as fallback');
         return this.getMockWorkflow(request.prompt);
       }
     } catch (error) {

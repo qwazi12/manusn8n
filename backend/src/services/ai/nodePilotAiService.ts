@@ -358,6 +358,15 @@ Output: Optimized prompt for workflow generation`
       const response = await this.anthropic.messages.create({
         model: 'claude-sonnet-4-20250514', // Using Claude Sonnet 4 (latest)
         max_tokens: 4000,
+        system: `You are an expert n8n workflow generator. You must return ONLY valid JSON for the n8n workflow.
+
+CRITICAL INSTRUCTIONS:
+- Return ONLY the JSON object, no explanations or markdown
+- Do not wrap in code blocks or backticks
+- Ensure the JSON is valid and complete
+- Include all required n8n workflow properties: name, nodes, connections, active, staticData, meta
+
+The JSON must be a complete n8n workflow that can be imported directly.`,
         messages: [
           {
             role: 'user',
@@ -371,28 +380,52 @@ Output: Optimized prompt for workflow generation`
       // Log the raw response for debugging
       logger.info('Claude raw response:', { content: workflowContent.substring(0, 500) + '...' });
 
-      // Parse workflow JSON
+      // Parse workflow JSON with improved extraction
       let workflow;
       try {
-        const jsonMatch = workflowContent.match(/```json\n([\s\S]*?)\n```/);
-        if (jsonMatch) {
-          logger.info('Found JSON in code block');
-          workflow = JSON.parse(jsonMatch[1]);
-        } else {
-          // Try to find JSON in the response
-          const jsonStart = workflowContent.indexOf('{');
-          const jsonEnd = workflowContent.lastIndexOf('}') + 1;
-          if (jsonStart !== -1 && jsonEnd > jsonStart) {
-            logger.info('Found JSON in response body');
-            const jsonString = workflowContent.substring(jsonStart, jsonEnd);
-            workflow = JSON.parse(jsonString);
-          } else {
-            logger.warn('No JSON found in Claude response');
+        let jsonString = '';
+
+        // Method 1: Extract from various code block formats
+        const codeBlockPatterns = [
+          /```json\s*\n([\s\S]*?)\n```/,
+          /```\s*\n([\s\S]*?)\n```/,
+          /```(?:json)?\s*(\{[\s\S]*\})\s*```/
+        ];
+
+        for (const pattern of codeBlockPatterns) {
+          const match = workflowContent.match(pattern);
+          if (match) {
+            jsonString = match[1];
+            logger.info('Found JSON in code block with pattern:', pattern.source);
+            break;
           }
+        }
+
+        // Method 2: Extract first complete JSON object if no code block found
+        if (!jsonString) {
+          const jsonMatch = workflowContent.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            jsonString = jsonMatch[0];
+            logger.info('Found JSON object in response');
+          }
+        }
+
+        // Method 3: Try the entire content if it looks like JSON
+        if (!jsonString && workflowContent.trim().startsWith('{')) {
+          jsonString = workflowContent.trim();
+          logger.info('Using entire response as JSON');
+        }
+
+        if (jsonString) {
+          workflow = JSON.parse(jsonString);
+          logger.info('Successfully parsed workflow JSON');
+        } else {
+          logger.warn('No JSON found in Claude response');
+          logger.warn('Response content:', workflowContent.substring(0, 500));
         }
       } catch (parseError) {
         logger.error('Failed to parse workflow JSON:', parseError);
-        logger.error('Raw content that failed to parse:', workflowContent);
+        logger.error('Raw content that failed to parse:', workflowContent.substring(0, 1000));
       }
 
       logger.info('Parsed workflow:', { hasWorkflow: !!workflow, workflowKeys: workflow ? Object.keys(workflow) : [] });
