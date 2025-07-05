@@ -31,7 +31,7 @@ NodePilot is a sophisticated AI-powered SaaS platform that converts natural lang
 
 ### **AI Services**
 - **Primary AI**: OpenAI GPT-4o (Intent classification, optimization)
-- **Workflow AI**: Claude Sonnet 3.5 (n8n workflow generation)
+- **Workflow AI**: Claude Sonnet 4 (n8n workflow generation)
 - **Hybrid Architecture**: Intelligent routing between AI providers
 
 ---

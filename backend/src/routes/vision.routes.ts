@@ -251,7 +251,7 @@ router.get('/capabilities', (req, res) => {
       ],
       models: {
         vision: 'GPT-4o (OpenAI)',
-        generation: 'Claude 3.5 Sonnet (Anthropic)'
+        generation: 'Claude Sonnet 4 (Anthropic)'
       }
     }
   });

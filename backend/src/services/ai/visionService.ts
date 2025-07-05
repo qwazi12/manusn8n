@@ -236,7 +236,7 @@ Generate a complete n8n workflow JSON that recreates this exact workflow structu
 Return only the JSON workflow structure.`;
 
       const response = await this.anthropic.messages.create({
-        model: "claude-3-5-sonnet-20241022",
+        model: "claude-sonnet-4-20250514",
         max_tokens: 4000,
         temperature: 0.3,
         system: `You are an expert in n8n workflows. Generate a complete n8n 1.100.1 compatible workflow JSON based on the image analysis provided. Ensure all nodes have proper typeVersions and parameter structures to prevent "Could not find property option" errors.`,

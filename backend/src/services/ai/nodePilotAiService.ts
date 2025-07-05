@@ -356,7 +356,7 @@ Output: Optimized prompt for workflow generation`
       const fullPrompt = `${workflowPrompt}\n\nOptimized Request: ${optimizedPrompt}`;
 
       const response = await this.anthropic.messages.create({
-        model: 'claude-3-5-sonnet-20241022', // Using Claude 3.5 Sonnet (stable)
+        model: 'claude-sonnet-4-20250514', // Using Claude Sonnet 4 (latest)
         max_tokens: 4000,
         messages: [
           {

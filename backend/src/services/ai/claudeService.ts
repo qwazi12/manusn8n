@@ -31,7 +31,7 @@ class ClaudeService {
       logger.info('Generating workflow draft with Claude', { userId: request.userId });
       
       const message = await this.anthropic.messages.create({
-        model: "claude-3-5-sonnet-20241022",
+        model: "claude-sonnet-4-20250514",
         max_tokens: 4000,
         temperature: 0.7,
         system: `You are an expert in n8n workflows. Create a valid n8n workflow JSON based on the user's request. 
@@ -82,7 +82,7 @@ class ClaudeService {
       logger.info('Polishing workflow draft with Claude', { userId: request.userId });
       
       const message = await this.anthropic.messages.create({
-        model: "claude-3-5-sonnet-20241022",
+        model: "claude-sonnet-4-20250514",
         max_tokens: 4000,
         temperature: 0.3,
         system: `You are an expert in n8n workflows. Polish and improve the provided n8n workflow JSON.

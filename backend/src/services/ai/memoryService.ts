@@ -115,7 +115,7 @@ If no memory is needed, return exactly: "no_memory_needed"`;
   async extractMemory(conversationContext: string, userId: string): Promise<string | null> {
     try {
       const message = await this.anthropic.messages.create({
-        model: "claude-3-5-sonnet-20241022",
+        model: "claude-sonnet-4-20250514",
         max_tokens: 1000,
         temperature: 0.3,
         system: this.ratingPrompt,
@@ -165,7 +165,7 @@ If no memory is needed, return exactly: "no_memory_needed"`;
         .replace('${c}', '');
 
       const message = await this.anthropic.messages.create({
-        model: "claude-3-5-sonnet-20241022",
+        model: "claude-sonnet-4-20250514",
         max_tokens: 1000,
         temperature: 0.3,
         system: prompt,
